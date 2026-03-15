@@ -160,6 +160,12 @@
           <input type="range" id="aovIncrease" min="-50" max="100" value="0" step="1" oninput="syncSlider(this,'aovNum')">
           <input type="number" id="aovNum" value="0" step="1" oninput="syncNum(this,'aovIncrease')">
         </div>
+        <div class="input-row" style="margin-top:4px">
+          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+          <input type="range" id="aovCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'aovCompNum')" style="flex:1">
+          <input type="number" id="aovCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'aovCompound')" style="width:65px">
+          <span class="unit">%</span>
+        </div>
       </div>
 
       <div class="input-group">
@@ -167,6 +173,12 @@
         <div class="input-row">
           <input type="range" id="costReduction" min="-50" max="50" value="0" step="1" oninput="syncSlider(this,'costRedNum')">
           <input type="number" id="costRedNum" value="0" min="-100" max="100" step="1" oninput="syncNum(this,'costReduction')">
+          <span class="unit">%</span>
+        </div>
+        <div class="input-row" style="margin-top:4px">
+          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+          <input type="range" id="costCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'costCompNum')" style="flex:1">
+          <input type="number" id="costCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'costCompound')" style="width:65px">
           <span class="unit">%</span>
         </div>
         <span style="font-size:0.7rem;color:#94a3b8">Positive = reduction, Negative = increase</span>
@@ -179,6 +191,12 @@
           <input type="number" id="refRedNum" value="0" min="-200" max="100" step="1" oninput="syncNum(this,'refundReduction')">
           <span class="unit">%</span>
         </div>
+        <div class="input-row" style="margin-top:4px">
+          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+          <input type="range" id="refundCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'refCompNum')" style="flex:1">
+          <input type="number" id="refCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'refundCompound')" style="width:65px">
+          <span class="unit">%</span>
+        </div>
         <span style="font-size:0.7rem;color:#94a3b8">Positive = reduction, Negative = increase</span>
       </div>
 
@@ -187,6 +205,12 @@
         <div class="input-row">
           <input type="range" id="orderGrowth" min="-50" max="100" value="0" step="1" oninput="syncSlider(this,'orderGrowthNum')">
           <input type="number" id="orderGrowthNum" value="0" min="-100" max="200" step="1" oninput="syncNum(this,'orderGrowth')">
+          <span class="unit">%</span>
+        </div>
+        <div class="input-row" style="margin-top:4px">
+          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+          <input type="range" id="orderCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'orderCompNum')" style="flex:1">
+          <input type="number" id="orderCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'orderCompound')" style="width:65px">
           <span class="unit">%</span>
         </div>
       </div>
@@ -275,16 +299,6 @@
         <input type="number" id="investNum" value="0" min="0" step="1000" oninput="syncNum(this,'initialInvestment')">
       </div>
       <span style="font-size:0.7rem;color:#94a3b8">Set to 0 if already operational. Use for new projects or major changes.</span>
-    </div>
-
-    <div class="input-group">
-      <label>Monthly Improvement Rate % (how fast improvements compound)</label>
-      <div class="input-row">
-        <input type="range" id="improvementRate" min="0" max="10" value="2" step="0.5" oninput="syncSlider(this,'impRateNum')">
-        <input type="number" id="impRateNum" value="2" min="0" max="20" step="0.5" oninput="syncNum(this,'improvementRate')">
-        <span class="unit">%/mo</span>
-      </div>
-      <span style="font-size:0.7rem;color:#94a3b8">How quickly improvements compound each month (e.g., 2% = AOV grows 2%/month)</span>
     </div>
 
     <!-- Break-Even Summary Cards -->
@@ -544,7 +558,15 @@ function update() {
 function updateTimeline(baseProfit, improvedProfit, baseRevenue, improvedRevenue, baseCosts, improvedCosts, baseRefunds, improvedRefunds, orderGrow) {
   const totalMonths = +$('timelineSelect').value;
   const investment = +$('initialInvestment').value;
-  const impRate = +$('improvementRate').value / 100; // monthly compound rate
+
+  // Per-scenario compound rates
+  const aovComp = +$('aovCompound').value / 100;
+  const costComp = +$('costCompound').value / 100;
+  const refundComp = +$('refundCompound').value / 100;
+  const orderComp = +$('orderCompound').value / 100;
+
+  // Base values for month 1 (already include the initial improvement)
+  const baseAOV = baseRevenue > 0 && improvedRevenue > 0 ? improvedRevenue / (improvedRevenue / (baseRevenue / (+$('orders').value || 1))) : 0;
 
   // Generate monthly data for both paths
   const data = [];
@@ -556,11 +578,20 @@ function updateTimeline(baseProfit, improvedProfit, baseRevenue, improvedRevenue
     // Baseline: flat monthly profit (no improvements)
     cumBaseline += baseProfit;
 
-    // Improved: improvements compound each month
-    const compoundFactor = Math.pow(1 + impRate, m - 1);
-    const monthRevenue = improvedRevenue * compoundFactor;
-    const monthCosts = improvedCosts * compoundFactor * (1 - impRate * 0.3); // costs grow slower
-    const monthRefunds = improvedRefunds * compoundFactor * (1 - impRate * 0.5); // refunds improve faster
+    // Each scenario compounds independently
+    // Revenue grows via AOV compound + order volume compound
+    const aovFactor = Math.pow(1 + aovComp, m - 1);
+    const orderFactor = Math.pow(1 + orderComp, m - 1);
+    const monthRevenue = improvedRevenue * aovFactor * orderFactor;
+
+    // Costs reduce further each month via cost compound
+    const costFactor = Math.pow(1 - costComp, m - 1);
+    const monthCosts = improvedCosts * aovFactor * orderFactor * costFactor;
+
+    // Refunds reduce further each month via refund compound
+    const refundFactor = Math.pow(1 - refundComp, m - 1);
+    const monthRefunds = improvedRefunds * aovFactor * orderFactor * refundFactor;
+
     const monthProfit = monthRevenue - monthRefunds - monthCosts;
     cumImproved += monthProfit;
 
