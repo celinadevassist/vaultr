@@ -151,68 +151,89 @@
     </div>
 
     <div class="card">
-      <h3>Improvement Scenarios</h3>
-      <p style="font-size:0.8rem;color:#64748b;margin-bottom:12px">Use negative values to simulate decline</p>
+      <h3>What-If Scenarios</h3>
+      <p style="font-size:0.8rem;color:#64748b;margin-bottom:16px">
+        Simulate how business changes affect your profit. Set the <b>initial change</b> (what happens in Month 1)
+        and the <b>monthly growth</b> (how much that change improves each month after).
+      </p>
 
-      <div class="input-group">
-        <label>AOV Change</label>
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px">
+        <label style="color:#228be6;font-weight:600">Average Order Value (AOV) Change</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          How much more (or less) each customer spends per order.
+          Example: +$5 means each order is $5 bigger on average through bundles, upsells, or higher prices.
+        </p>
         <div class="input-row">
           <input type="range" id="aovIncrease" min="-50" max="100" value="0" step="1" oninput="syncSlider(this,'aovNum')">
           <input type="number" id="aovNum" value="0" step="1" oninput="syncNum(this,'aovIncrease')">
         </div>
-        <div class="input-row" style="margin-top:4px">
-          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
           <input type="range" id="aovCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'aovCompNum')" style="flex:1">
           <input type="number" id="aovCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'aovCompound')" style="width:65px">
           <span class="unit">%</span>
         </div>
+        <span style="font-size:0.65rem;color:#94a3b8">If AOV grows 2%/month: Month 1 = +$5, Month 6 = +$5.52, Month 12 = +$6.10</span>
       </div>
 
-      <div class="input-group">
-        <label>Cost Change %</label>
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px">
+        <label style="color:#fa5252;font-weight:600">Running Costs Change %</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          Reduce costs by renegotiating suppliers, cutting marketing waste, or automating tasks.
+          +10% = you cut 10% of costs. -10% = costs increased 10% (e.g., hiring more staff).
+        </p>
         <div class="input-row">
           <input type="range" id="costReduction" min="-50" max="50" value="0" step="1" oninput="syncSlider(this,'costRedNum')">
           <input type="number" id="costRedNum" value="0" min="-100" max="100" step="1" oninput="syncNum(this,'costReduction')">
           <span class="unit">%</span>
         </div>
-        <div class="input-row" style="margin-top:4px">
-          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
           <input type="range" id="costCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'costCompNum')" style="flex:1">
           <input type="number" id="costCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'costCompound')" style="width:65px">
           <span class="unit">%</span>
         </div>
-        <span style="font-size:0.7rem;color:#94a3b8">Positive = reduction, Negative = increase</span>
+        <span style="font-size:0.65rem;color:#94a3b8">Growth = how fast cost savings deepen each month through ongoing optimization</span>
       </div>
 
-      <div class="input-group">
-        <label>Refund Change %</label>
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px">
+        <label style="color:#fd7e14;font-weight:600">Refund/Return Rate Change %</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          Reduce refunds by improving product quality, descriptions, or shipping.
+          +30% = you reduced refunds by 30%. -20% = refunds increased 20%.
+        </p>
         <div class="input-row">
           <input type="range" id="refundReduction" min="-100" max="100" value="0" step="1" oninput="syncSlider(this,'refRedNum')">
           <input type="number" id="refRedNum" value="0" min="-200" max="100" step="1" oninput="syncNum(this,'refundReduction')">
           <span class="unit">%</span>
         </div>
-        <div class="input-row" style="margin-top:4px">
-          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
           <input type="range" id="refundCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'refCompNum')" style="flex:1">
           <input type="number" id="refCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'refundCompound')" style="width:65px">
           <span class="unit">%</span>
         </div>
-        <span style="font-size:0.7rem;color:#94a3b8">Positive = reduction, Negative = increase</span>
+        <span style="font-size:0.65rem;color:#94a3b8">Growth = how fast refund rate improves as you fix root causes</span>
       </div>
 
-      <div class="input-group">
-        <label>Order Volume Change %</label>
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px">
+        <label style="color:#12b886;font-weight:600">Number of Orders Change %</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          More customers buying from you through marketing, SEO, or word of mouth.
+          +20% = 20% more orders. -15% = lost 15% of order volume.
+        </p>
         <div class="input-row">
           <input type="range" id="orderGrowth" min="-50" max="100" value="0" step="1" oninput="syncSlider(this,'orderGrowthNum')">
           <input type="number" id="orderGrowthNum" value="0" min="-100" max="200" step="1" oninput="syncNum(this,'orderGrowth')">
           <span class="unit">%</span>
         </div>
-        <div class="input-row" style="margin-top:4px">
-          <span style="font-size:0.7rem;color:#94a3b8;min-width:90px">Compound %/mo</span>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
           <input type="range" id="orderCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'orderCompNum')" style="flex:1">
           <input type="number" id="orderCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'orderCompound')" style="width:65px">
           <span class="unit">%</span>
         </div>
+        <span style="font-size:0.65rem;color:#94a3b8">Growth = how fast new customer acquisition accelerates monthly</span>
       </div>
     </div>
   </div>
@@ -334,6 +355,18 @@
       <div class="legend-item"><div class="legend-dot" style="background:#12b886"></div>With Improvements</div>
       <div class="legend-item"><div class="legend-dot" style="background:#fa5252"></div>Investment Recovery Line</div>
       <div class="legend-item"><div class="legend-dot" style="background:#7950f2"></div>Break-Even Point</div>
+    </div>
+
+    <!-- Yearly Profit Breakdown -->
+    <div style="margin-top:24px">
+      <h3 style="margin-bottom:12px">Yearly Profit Forecast</h3>
+      <div id="yearlyBreakdown" class="grid" style="gap:10px"></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div style="margin-top:24px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:20px">
+      <h3 style="margin-bottom:10px;color:#1e40af">Recommendations</h3>
+      <div id="recommendations" style="font-size:0.9rem;color:#1e3a5f"></div>
     </div>
 
     <!-- Monthly Breakdown Table -->
@@ -641,6 +674,8 @@ function updateTimeline(baseProfit, improvedProfit, baseRevenue, improvedRevenue
 
   // Build monthly table
   buildMonthlyTable(data, investment);
+  buildYearlyBreakdown(data);
+  buildRecommendations(data, baseProfit, improvedProfit);
 }
 
 function getMonthLabel(m, total) {
@@ -783,6 +818,119 @@ function buildMonthlyTable(data, investment) {
   });
   html += '</tbody>';
   $('monthlyTable').innerHTML = html;
+}
+
+function buildYearlyBreakdown(data) {
+  const years = {};
+  data.forEach(d => {
+    const yr = Math.ceil(d.month / 12);
+    if (!years[yr]) years[yr] = { improvedTotal: 0, baselineTotal: 0, months: 0, startProfit: null, endProfit: null };
+    years[yr].improvedTotal += d.improvedMonthly;
+    years[yr].baselineTotal += d.baselineMonthly;
+    years[yr].months++;
+    if (years[yr].startProfit === null) years[yr].startProfit = d.improvedMonthly;
+    years[yr].endProfit = d.improvedMonthly;
+  });
+
+  const yearKeys = Object.keys(years).sort((a,b) => a - b);
+  const cols = Math.min(yearKeys.length, 5);
+  const container = $('yearlyBreakdown');
+  container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  let html = '';
+  yearKeys.forEach((yr, i) => {
+    const y = years[yr];
+    const extra = y.improvedTotal - y.baselineTotal;
+    const growth = i > 0 && years[yearKeys[i-1]]
+      ? ((y.improvedTotal / years[yearKeys[i-1]].improvedTotal - 1) * 100).toFixed(0)
+      : null;
+    const avgMonthly = y.improvedTotal / y.months;
+    const isProfit = y.improvedTotal >= 0;
+
+    html += `<div style="background:${isProfit ? '#f0fdf4' : '#fef2f2'};border:1px solid ${isProfit ? '#bbf7d0' : '#fecaca'};border-radius:10px;padding:16px;text-align:center">
+      <div style="font-size:0.8rem;color:#64748b;font-weight:500">Year ${yr}</div>
+      <div style="font-size:1.6rem;font-weight:800;color:${isProfit ? '#12b886' : '#fa5252'};margin:6px 0">${fmt(y.improvedTotal)}</div>
+      <div style="font-size:0.75rem;color:#64748b">Avg ${fmt(avgMonthly)}/mo</div>
+      ${extra !== 0 ? `<div style="font-size:0.75rem;color:${extra > 0 ? '#12b886' : '#fa5252'};margin-top:4px">${extra > 0 ? '+' : ''}${fmt(extra)} vs no changes</div>` : ''}
+      ${growth !== null ? `<div style="font-size:0.7rem;color:#228be6;margin-top:2px">${growth > 0 ? '+' : ''}${growth}% vs Year ${yr - 1}</div>` : ''}
+      <div style="font-size:0.7rem;color:#94a3b8;margin-top:4px">Month ${(yr-1)*12+1}\u2013${Math.min(yr*12, data.length)}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function buildRecommendations(data, baseProfit, improvedProfit) {
+  const totalMonths = data.length;
+  const lastD = data[data.length - 1];
+  const investment = +$('initialInvestment').value;
+  const aovInc = +$('aovIncrease').value;
+  const costRed = +$('costReduction').value;
+  const refRed = +$('refundReduction').value;
+  const orderGrow = +$('orderGrowth').value;
+  const revenue = +$('revenue').value;
+
+  const recs = [];
+
+  // Break-even analysis
+  const beMonth = data.findIndex(d => d.cumImproved > 0) + 1;
+  if (investment > 0 && beMonth > 0) {
+    recs.push({ icon: '\u2705', text: `Your investment of ${fmt(investment)} pays back in <b>Month ${beMonth}</b>. After that, every month is pure profit.`, type: 'success' });
+  } else if (investment > 0 && beMonth === 0) {
+    recs.push({ icon: '\u26A0', text: `Your investment of ${fmt(investment)} does <b>not pay back</b> within ${formatTimeline(totalMonths)}. Consider reducing the investment or increasing improvement targets.`, type: 'warning' });
+  }
+
+  // Yearly growth
+  if (totalMonths >= 24) {
+    const yr1 = data.slice(0, 12).reduce((s, d) => s + d.improvedMonthly, 0);
+    const yr2 = data.slice(12, 24).reduce((s, d) => s + d.improvedMonthly, 0);
+    const growthPct = yr1 > 0 ? ((yr2 / yr1 - 1) * 100).toFixed(0) : 0;
+    if (growthPct > 0) {
+      recs.push({ icon: '\uD83D\uDCC8', text: `Year 2 profit is <b>${growthPct}% higher</b> than Year 1 thanks to compounding improvements. This is the power of consistent optimization.`, type: 'success' });
+    }
+  }
+
+  // AOV recommendation
+  if (aovInc === 0) {
+    recs.push({ icon: '\uD83D\uDCA1', text: `<b>Start with AOV.</b> Even a small increase per order (bundles, minimum order value, premium options) compounds into the biggest annual impact with zero extra cost to fulfill.`, type: 'tip' });
+  } else if (aovInc > 0) {
+    const aovAnnualImpact = aovInc * (+$('orders').value) * 12;
+    recs.push({ icon: '\u2705', text: `AOV increase of ${fmt(aovInc)} generates <b>${fmt(aovAnnualImpact)}/year</b> in extra revenue. Consider: product bundles, "frequently bought together", free shipping threshold above current AOV.`, type: 'success' });
+  }
+
+  // Cost recommendation
+  if (costRed === 0 && +$('costs').value > 20) {
+    recs.push({ icon: '\uD83D\uDCA1', text: `<b>Review your cost structure.</b> Use the Cost Breakdown chart to identify which categories (marketing, shipping, rent) have the most room to optimize.`, type: 'tip' });
+  }
+
+  // Refund recommendation
+  if (refRed === 0 && +$('refundRate').value > 5) {
+    recs.push({ icon: '\u26A0', text: `Your refund rate of ${$('refundRate').value}% is <b>above the healthy 3% threshold</b>. Improving product descriptions, photos, and shipping quality can significantly reduce returns.`, type: 'warning' });
+  }
+
+  // Margin warning
+  const margin = lastD.improvedMonthly > 0 ? 'healthy' : 'negative';
+  if (margin === 'negative') {
+    recs.push({ icon: '\u274C', text: `<b>Warning:</b> This scenario results in a loss. Focus on reducing costs or increasing revenue before investing further.`, type: 'danger' });
+  }
+
+  // Order growth
+  if (orderGrow === 0) {
+    recs.push({ icon: '\uD83D\uDCA1', text: `<b>Growing order volume</b> through SEO, paid ads, or referral programs has the most dramatic long-term impact when compounded. Even 1-2%/month growth compounds to 12-27% per year.`, type: 'tip' });
+  }
+
+  // Final cumulative
+  recs.push({ icon: '\uD83C\uDFAF', text: `Following this improvement plan over <b>${formatTimeline(totalMonths)}</b>, total profit reaches <b>${fmt(lastD.cumImproved)}</b> (vs ${fmt(lastD.cumBaseline)} without changes) \u2014 an extra <b>${fmt(lastD.cumImproved - lastD.cumBaseline)}</b>.`, type: 'summary' });
+
+  const colors = { success: '#f0fdf4', warning: '#fef3c7', danger: '#fef2f2', tip: '#eff6ff', summary: '#f5f3ff' };
+  const borders = { success: '#bbf7d0', warning: '#fde68a', danger: '#fecaca', tip: '#bfdbfe', summary: '#c4b5fd' };
+
+  let html = '';
+  recs.forEach(r => {
+    html += `<div style="padding:10px 14px;margin-bottom:8px;background:${colors[r.type]};border:1px solid ${borders[r.type]};border-radius:8px;font-size:0.85rem;line-height:1.5">
+      ${r.icon} ${r.text}
+    </div>`;
+  });
+  $('recommendations').innerHTML = html;
 }
 
 function setChange(id, diff, positiveIsGood) {
