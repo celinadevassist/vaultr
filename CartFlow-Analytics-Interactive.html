@@ -313,13 +313,83 @@
       </div>
     </div>
 
-    <div class="input-group">
-      <label>Initial Investment / Setup Cost (one-time)</label>
-      <div class="input-row">
-        <input type="range" id="initialInvestment" min="0" max="500000" value="0" step="1000" oninput="syncSlider(this,'investNum')">
-        <input type="number" id="investNum" value="0" min="0" step="1000" oninput="syncNum(this,'initialInvestment')">
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="input-group" style="margin:0">
+        <label>Initial Investment / Setup Cost (one-time)</label>
+        <div class="input-row">
+          <input type="range" id="initialInvestment" min="0" max="500000" value="0" step="1000" oninput="syncSlider(this,'investNum')">
+          <input type="number" id="investNum" value="0" min="0" step="1000" oninput="syncNum(this,'initialInvestment')">
+        </div>
+        <span style="font-size:0.7rem;color:#94a3b8">Set to 0 if already operational</span>
       </div>
-      <span style="font-size:0.7rem;color:#94a3b8">Set to 0 if already operational. Use for new projects or major changes.</span>
+      <div></div>
+    </div>
+
+    <!-- Market Capacity Parameters -->
+    <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:16px;margin-bottom:20px">
+      <h3 style="margin-bottom:4px;color:#7c3aed;font-size:1rem">Market & Order Capacity</h3>
+      <p style="font-size:0.75rem;color:#64748b;margin-bottom:12px">
+        Define your target market size to predict order saturation and customer repeat buying.
+      </p>
+      <div class="grid grid-2" style="gap:12px;margin-bottom:0">
+        <div class="input-group" style="margin:0">
+          <label>Total Addressable Market (potential customers)</label>
+          <div class="input-row">
+            <input type="range" id="marketSize" min="100" max="1000000" value="10000" step="100" oninput="syncSlider(this,'marketSizeNum')">
+            <input type="number" id="marketSizeNum" value="10000" min="0" step="100" oninput="syncNum(this,'marketSize')">
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">How many people could buy your product in your region/niche</span>
+        </div>
+        <div class="input-group" style="margin:0">
+          <label>Avg purchases per customer per year</label>
+          <div class="input-row">
+            <input type="range" id="purchaseFreq" min="1" max="52" value="4" step="1" oninput="syncSlider(this,'purchaseFreqNum')">
+            <input type="number" id="purchaseFreqNum" value="4" min="1" max="365" step="1" oninput="syncNum(this,'purchaseFreq')">
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">How many times the same customer buys per year (1 = one-time, 12 = monthly, 52 = weekly)</span>
+        </div>
+        <div class="input-group" style="margin:0">
+          <label>Market penetration rate % (how much of the market you can capture)</label>
+          <div class="input-row">
+            <input type="range" id="marketPenetration" min="0.1" max="30" value="5" step="0.1" oninput="syncSlider(this,'marketPenNum')">
+            <input type="number" id="marketPenNum" value="5" min="0" max="100" step="0.1" oninput="syncNum(this,'marketPenetration')">
+            <span class="unit">%</span>
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">Realistic: 1-5% for new, 5-15% for established, 15%+ for market leaders</span>
+        </div>
+        <div class="input-group" style="margin:0">
+          <label>Customer acquisition cost (CAC)</label>
+          <div class="input-row">
+            <input type="range" id="cac" min="0" max="200" value="15" step="1" oninput="syncSlider(this,'cacNum')">
+            <input type="number" id="cacNum" value="15" min="0" step="1" oninput="syncNum(this,'cac')">
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">How much it costs to acquire one new customer (ads, marketing, etc.)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Analysis KPIs -->
+    <div class="grid grid-4" style="margin-bottom:20px">
+      <div class="card" style="border-top:3px solid #7c3aed;padding:14px">
+        <div class="stat-label">Avg Orders / Month</div>
+        <div class="stat-value" id="avgOrdersMonth" style="color:#7c3aed;font-size:1.5rem">-</div>
+        <div class="stat-change" id="avgOrdersDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #0ea5e9;padding:14px">
+        <div class="stat-label">Max Market Orders / Year</div>
+        <div class="stat-value" id="maxMarketOrders" style="color:#0ea5e9;font-size:1.5rem">-</div>
+        <div class="stat-change" id="maxMarketDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #f59e0b;padding:14px">
+        <div class="stat-label">Market Saturation</div>
+        <div class="stat-value" id="marketSaturation" style="color:#f59e0b;font-size:1.5rem">-</div>
+        <div class="stat-change" id="saturationDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #10b981;padding:14px">
+        <div class="stat-label">Customer LTV vs CAC</div>
+        <div class="stat-value" id="ltvCacRatio" style="color:#10b981;font-size:1.5rem">-</div>
+        <div class="stat-change" id="ltvCacDesc" style="color:#64748b"></div>
+      </div>
     </div>
 
     <!-- Break-Even Summary Cards -->
@@ -675,6 +745,7 @@ function updateTimeline(baseProfit, improvedProfit, baseRevenue, improvedRevenue
   // Build monthly table
   buildMonthlyTable(data, investment);
   buildYearlyBreakdown(data);
+  updateMarketAnalysis(data, improvedRevenue, improvedProfit);
   buildRecommendations(data, baseProfit, improvedProfit);
 }
 
@@ -820,6 +891,77 @@ function buildMonthlyTable(data, investment) {
   $('monthlyTable').innerHTML = html;
 }
 
+function updateMarketAnalysis(data, improvedRevenue, improvedProfit) {
+  const totalMonths = data.length;
+  const marketSize = +$('marketSize').value;
+  const purchaseFreq = +$('purchaseFreq').value;
+  const penetration = +$('marketPenetration').value / 100;
+  const cac = +$('cac').value;
+  const orders = +$('orders').value;
+  const orderGrow = +$('orderGrowth').value / 100;
+  const orderComp = +$('orderCompound').value / 100;
+
+  // Calculate average orders per month across the timeline
+  let totalOrders = 0;
+  for (let m = 1; m <= totalMonths; m++) {
+    const orderFactor = Math.pow(1 + orderComp, m - 1);
+    const monthOrders = Math.round(orders * (1 + orderGrow) * orderFactor);
+    totalOrders += monthOrders;
+  }
+  const avgOrdersPerMonth = Math.round(totalOrders / totalMonths);
+
+  // Max market capacity = addressable customers * penetration rate * purchase frequency
+  const reachableCustomers = Math.round(marketSize * penetration);
+  const maxOrdersPerYear = reachableCustomers * purchaseFreq;
+  const maxOrdersPerMonth = Math.round(maxOrdersPerYear / 12);
+
+  // Current annual run-rate of orders
+  const currentAnnualOrders = avgOrdersPerMonth * 12;
+
+  // Market saturation %
+  const saturation = maxOrdersPerYear > 0 ? (currentAnnualOrders / maxOrdersPerYear) * 100 : 0;
+
+  // Customer LTV (based on AOV * purchase frequency * avg customer lifespan ~3 years)
+  const aov = orders > 0 ? improvedRevenue / (orders * (1 + orderGrow)) : 0;
+  const ltv = aov * purchaseFreq * Math.min(totalMonths / 12, 3);
+  const ltvCac = cac > 0 ? ltv / cac : Infinity;
+
+  // Total orders over project lifetime
+  const totalLifetimeOrders = totalOrders;
+
+  // How many unique customers over lifetime
+  const uniqueCustomers = purchaseFreq > 0 ? Math.round(totalLifetimeOrders / (purchaseFreq * (totalMonths / 12))) : totalLifetimeOrders;
+
+  // Update KPIs
+  $('avgOrdersMonth').textContent = avgOrdersPerMonth.toLocaleString();
+  $('avgOrdersDesc').textContent = `${totalLifetimeOrders.toLocaleString()} total over ${formatTimeline(totalMonths)}`;
+
+  $('maxMarketOrders').textContent = maxOrdersPerYear.toLocaleString();
+  $('maxMarketDesc').textContent = `${reachableCustomers.toLocaleString()} customers x ${purchaseFreq}/yr`;
+
+  $('marketSaturation').textContent = saturation.toFixed(1) + '%';
+  $('marketSaturation').style.color = saturation > 80 ? '#fa5252' : saturation > 50 ? '#f59e0b' : '#10b981';
+  if (saturation > 80) {
+    $('saturationDesc').textContent = 'Near capacity - expand market';
+    $('saturationDesc').style.color = '#fa5252';
+  } else if (saturation > 50) {
+    $('saturationDesc').textContent = 'Growing well';
+    $('saturationDesc').style.color = '#f59e0b';
+  } else {
+    $('saturationDesc').textContent = 'Room to grow';
+    $('saturationDesc').style.color = '#10b981';
+  }
+
+  if (ltvCac === Infinity || cac === 0) {
+    $('ltvCacRatio').textContent = 'N/A';
+    $('ltvCacDesc').textContent = 'Set CAC to calculate';
+  } else {
+    $('ltvCacRatio').textContent = ltvCac.toFixed(1) + 'x';
+    $('ltvCacRatio').style.color = ltvCac >= 3 ? '#10b981' : ltvCac >= 1 ? '#f59e0b' : '#fa5252';
+    $('ltvCacDesc').textContent = ltvCac >= 3 ? 'Healthy (3x+ is ideal)' : ltvCac >= 1 ? 'Breakeven - improve LTV' : 'Losing money per customer';
+  }
+}
+
 function buildYearlyBreakdown(data) {
   const years = {};
   data.forEach(d => {
@@ -917,6 +1059,39 @@ function buildRecommendations(data, baseProfit, improvedProfit) {
   if (orderGrow === 0) {
     recs.push({ icon: '\uD83D\uDCA1', text: `<b>Growing order volume</b> through SEO, paid ads, or referral programs has the most dramatic long-term impact when compounded. Even 1-2%/month growth compounds to 12-27% per year.`, type: 'tip' });
   }
+
+  // Market capacity insights
+  const marketSize = +$('marketSize').value;
+  const penetration = +$('marketPenetration').value / 100;
+  const purchaseFreq = +$('purchaseFreq').value;
+  const cac = +$('cac').value;
+  const orders = +$('orders').value;
+  const currentOrdersYr = orders * (1 + orderGrow) * 12;
+  const maxOrdersYr = marketSize * penetration * purchaseFreq;
+  const saturation = maxOrdersYr > 0 ? (currentOrdersYr / maxOrdersYr * 100) : 0;
+  const aov = orders > 0 ? revenue / orders : 0;
+  const ltv = aov * purchaseFreq * 3;
+  const ltvCac = cac > 0 ? ltv / cac : 0;
+
+  if (saturation > 80) {
+    recs.push({ icon: '\u26A0', text: `<b>Market saturation at ${saturation.toFixed(0)}%.</b> You're approaching the ceiling of your addressable market. Consider: expanding to new regions, adding product lines, or increasing purchase frequency through subscriptions/loyalty programs.`, type: 'warning' });
+  } else if (saturation < 10) {
+    recs.push({ icon: '\uD83D\uDE80', text: `<b>Only ${saturation.toFixed(1)}% market penetration.</b> Massive room for growth. At current pace, you'll need ~${Math.ceil((maxOrdersYr * 0.5 - currentOrdersYr) / (orders * 12))} more years to reach 50% penetration. Aggressive marketing could accelerate this significantly.`, type: 'tip' });
+  }
+
+  if (cac > 0 && ltvCac < 3) {
+    recs.push({ icon: '\u26A0', text: `<b>LTV:CAC ratio is ${ltvCac.toFixed(1)}x</b> (healthy is 3x+). Each customer costs ${fmt(cac)} to acquire but generates ${fmt(ltv)} lifetime value. Improve by: increasing purchase frequency, raising AOV, or reducing acquisition cost.`, type: 'warning' });
+  } else if (cac > 0 && ltvCac >= 5) {
+    recs.push({ icon: '\u2705', text: `<b>Excellent LTV:CAC ratio of ${ltvCac.toFixed(1)}x.</b> You can afford to spend more on customer acquisition to accelerate growth. Consider increasing marketing budget by ${Math.round((ltvCac - 3) / ltvCac * 100)}% while maintaining a 3x ratio.`, type: 'success' });
+  }
+
+  // Total orders prediction
+  let totalPredOrders = 0;
+  for (let m = 1; m <= totalMonths; m++) {
+    totalPredOrders += Math.round(orders * (1 + orderGrow) * Math.pow(1 + (+$('orderCompound').value/100), m-1));
+  }
+  const uniqueCustomersPred = purchaseFreq > 0 ? Math.round(totalPredOrders / (purchaseFreq * totalMonths / 12)) : totalPredOrders;
+  recs.push({ icon: '\uD83D\uDCCA', text: `<b>Order prediction:</b> ~${totalPredOrders.toLocaleString()} total orders over ${formatTimeline(totalMonths)}, serving ~${uniqueCustomersPred.toLocaleString()} unique customers. Average ${Math.round(totalPredOrders/totalMonths).toLocaleString()} orders/month.`, type: 'tip' });
 
   // Final cumulative
   recs.push({ icon: '\uD83C\uDFAF', text: `Following this improvement plan over <b>${formatTimeline(totalMonths)}</b>, total profit reaches <b>${fmt(lastD.cumImproved)}</b> (vs ${fmt(lastD.cumBaseline)} without changes) \u2014 an extra <b>${fmt(lastD.cumImproved - lastD.cumBaseline)}</b>.`, type: 'summary' });
