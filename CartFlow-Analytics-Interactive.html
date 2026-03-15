@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CartFlow Analytics - Interactive Profit Simulator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+  h1 { font-size: 2rem; margin-bottom: 5px; }
+  h2 { font-size: 1.4rem; margin-bottom: 15px; color: #334155; }
+  h3 { font-size: 1.1rem; margin-bottom: 10px; color: #475569; }
+  .subtitle { color: #64748b; font-size: 1rem; margin-bottom: 30px; }
+  .grid { display: grid; gap: 20px; margin-bottom: 30px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+  .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+  .card-accent { border-left: 4px solid; }
+  .stat-value { font-size: 2rem; font-weight: 700; line-height: 1.2; }
+  .stat-label { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+  .stat-change { font-size: 0.8rem; margin-top: 4px; font-weight: 600; }
+  .positive { color: #12b886; }
+  .negative { color: #fa5252; }
+  .slider-group { margin-bottom: 18px; }
+  .slider-group label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; font-weight: 500; }
+  .slider-group label span { color: #228be6; font-weight: 700; }
+  input[type="range"] { width: 100%; height: 6px; -webkit-appearance: none; background: #e2e8f0; border-radius: 3px; outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #228be6; cursor: pointer; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding-top: 10px; }
+  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.4s ease; min-height: 2px; position: relative; }
+  .bar-label { font-size: 0.7rem; color: #64748b; text-align: center; margin-top: 4px; }
+  .bar-value { font-size: 0.65rem; color: #fff; text-align: center; padding: 2px; font-weight: 600; }
+  .legend { display: flex; gap: 20px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .donut-container { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+  .donut-legend { font-size: 0.8rem; }
+  .donut-legend div { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .donut-legend .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .insight-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-top: 15px; }
+  .insight-box.warning { background: #fef3c7; border-color: #fde68a; }
+  .insight-box p { font-size: 0.9rem; color: #166534; }
+  .insight-box.warning p { color: #92400e; }
+  .section { margin-bottom: 40px; }
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 5px; }
+  .section-subtitle { color: #64748b; margin-bottom: 20px; }
+  .highlight { background: linear-gradient(135deg, #228be6, #1971c2); color: #fff; border-radius: 12px; padding: 30px; margin-bottom: 30px; text-align: center; }
+  .highlight h2 { color: #fff; font-size: 1.8rem; margin-bottom: 8px; }
+  .highlight p { color: #bfdbfe; font-size: 1.1rem; }
+  .highlight .big { font-size: 3rem; font-weight: 800; color: #fff; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab { padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .tab.active { background: #228be6; color: #fff; border-color: #228be6; }
+  .tab:hover { border-color: #228be6; }
+  .footer { text-align: center; padding: 30px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>CartFlow Analytics</h1>
+  <p class="subtitle">Interactive Profit Simulator &mdash; Adjust the sliders to see real-time impact on your business</p>
+
+  <!-- Simulator Controls -->
+  <div class="section">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Business Parameters</h3>
+        <div class="slider-group">
+          <label>Monthly Revenue <span id="revenueVal">$50,000</span></label>
+          <input type="range" id="revenue" min="5000" max="500000" value="50000" step="1000">
+        </div>
+        <div class="slider-group">
+          <label>Monthly Orders <span id="ordersVal">500</span></label>
+          <input type="range" id="orders" min="10" max="5000" value="500" step="10">
+        </div>
+        <div class="slider-group">
+          <label>Running Costs % <span id="costsVal">30%</span></label>
+          <input type="range" id="costs" min="5" max="80" value="30">
+        </div>
+        <div class="slider-group">
+          <label>Refund Rate % <span id="refundVal">3%</span></label>
+          <input type="range" id="refundRate" min="0" max="20" value="3">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Improvement Scenarios</h3>
+        <div class="slider-group">
+          <label>AOV Increase <span id="aovIncVal">$0</span></label>
+          <input type="range" id="aovIncrease" min="0" max="50" value="0">
+        </div>
+        <div class="slider-group">
+          <label>Cost Reduction % <span id="costRedVal">0%</span></label>
+          <input type="range" id="costReduction" min="0" max="30" value="0">
+        </div>
+        <div class="slider-group">
+          <label>Refund Reduction % <span id="refRedVal">0%</span></label>
+          <input type="range" id="refundReduction" min="0" max="100" value="0">
+        </div>
+        <div class="slider-group">
+          <label>Order Volume Growth % <span id="orderGrowthVal">0%</span></label>
+          <input type="range" id="orderGrowth" min="0" max="50" value="0">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Results -->
+  <div class="highlight" id="profitHighlight">
+    <p>Annual Profit Impact</p>
+    <div class="big" id="annualProfit">$0</div>
+    <p id="profitDesc">Adjust the improvement sliders to see the impact</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-4" id="kpiCards">
+    <div class="card" style="border-top: 3px solid #12b886">
+      <div class="stat-label">Monthly Revenue</div>
+      <div class="stat-value positive" id="kpiRevenue">$50,000</div>
+      <div class="stat-change" id="kpiRevenueChange"></div>
+    </div>
+    <div class="card" style="border-top: 3px solid #fa5252">
+      <div class="stat-label">Monthly Costs</div>
+      <div class="stat-value negative" id="kpiCosts">$15,000</div>
+      <div class="stat-change" id="kpiCostsChange"></div>
+    </div>
+    <div class="card" style="border-top: 3px solid #228be6">
+      <div class="stat-label">Monthly Profit</div>
+      <div class="stat-value" id="kpiProfit" style="color:#228be6">$33,500</div>
+      <div class="stat-change" id="kpiProfitChange"></div>
+    </div>
+    <div class="card" style="border-top: 3px solid #7950f2">
+      <div class="stat-label">Profit Margin</div>
+      <div class="stat-value" id="kpiMargin" style="color:#7950f2">67%</div>
+      <div class="stat-change" id="kpiMarginChange"></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Before vs After (Monthly)</h3>
+      <div class="bar-chart" id="comparisonChart"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div>Before</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#228be6"></div>After</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Profit Breakdown</h3>
+      <div class="donut-container">
+        <svg id="donutChart" width="200" height="200" viewBox="0 0 200 200"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="grid grid-2" style="margin-top: 20px">
+    <div id="insightBox1" class="insight-box">
+      <p id="insight1">Adjust sliders above to see personalized insights</p>
+    </div>
+    <div id="insightBox2" class="insight-box">
+      <p id="insight2">Each insight updates in real-time as you change values</p>
+    </div>
+  </div>
+
+  <!-- 12-Month Projection -->
+  <div class="card" style="margin-top: 20px">
+    <h3>12-Month Profit Projection</h3>
+    <div class="bar-chart" id="projectionChart" style="height:250px"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div>Current Path</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#12b886"></div>With Improvements</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    CartFlow Analytics &bull; Data-Driven Decisions, Real Business Impact &bull; cartflow.smartlabtec.com
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Math.round(n).toLocaleString();
+const pct = n => n.toFixed(1) + '%';
+
+const sliders = ['revenue', 'orders', 'costs', 'refundRate', 'aovIncrease', 'costReduction', 'refundReduction', 'orderGrowth'];
+sliders.forEach(id => $(id).addEventListener('input', update));
+
+function update() {
+  const revenue = +$('revenue').value;
+  const orders = +$('orders').value;
+  const costsPct = +$('costs').value;
+  const refundPct = +$('refundRate').value;
+  const aovInc = +$('aovIncrease').value;
+  const costRed = +$('costReduction').value;
+  const refRed = +$('refundReduction').value;
+  const orderGrow = +$('orderGrowth').value;
+
+  // Display slider values
+  $('revenueVal').textContent = fmt(revenue);
+  $('ordersVal').textContent = orders.toLocaleString();
+  $('costsVal').textContent = costsPct + '%';
+  $('refundVal').textContent = refundPct + '%';
+  $('aovIncVal').textContent = fmt(aovInc);
+  $('costRedVal').textContent = costRed + '%';
+  $('refRedVal').textContent = refRed + '%';
+  $('orderGrowthVal').textContent = orderGrow + '%';
+
+  // Before calculations
+  const aov = orders > 0 ? revenue / orders : 0;
+  const refunds = revenue * (refundPct / 100);
+  const costs = revenue * (costsPct / 100);
+  const netRevenue = revenue - refunds;
+  const profit = netRevenue - costs;
+  const margin = netRevenue > 0 ? (profit / netRevenue) * 100 : 0;
+
+  // After calculations
+  const newOrders = Math.round(orders * (1 + orderGrow / 100));
+  const newAOV = aov + aovInc;
+  const newRevenue = newOrders * newAOV;
+  const newRefunds = newRevenue * (refundPct / 100) * (1 - refRed / 100);
+  const newCosts = newRevenue * (costsPct / 100) * (1 - costRed / 100);
+  const newNetRevenue = newRevenue - newRefunds;
+  const newProfit = newNetRevenue - newCosts;
+  const newMargin = newNetRevenue > 0 ? (newProfit / newNetRevenue) * 100 : 0;
+
+  // Annual impact
+  const annualDiff = (newProfit - profit) * 12;
+
+  // Update highlight
+  $('annualProfit').textContent = (annualDiff >= 0 ? '+' : '') + fmt(annualDiff);
+  $('annualProfit').style.color = annualDiff >= 0 ? '#fff' : '#fecaca';
+  $('profitHighlight').style.background = annualDiff >= 0
+    ? 'linear-gradient(135deg, #12b886, #0ca678)'
+    : 'linear-gradient(135deg, #fa5252, #e03131)';
+  $('profitDesc').textContent = annualDiff > 0
+    ? `Extra ${fmt(annualDiff)} per year from analytics-driven improvements`
+    : annualDiff === 0 ? 'Adjust improvement sliders to see impact' : 'Warning: changes reduce profit';
+
+  // Update KPIs
+  $('kpiRevenue').textContent = fmt(newRevenue);
+  $('kpiCosts').textContent = fmt(newCosts);
+  $('kpiProfit').textContent = fmt(newProfit);
+  $('kpiMargin').textContent = pct(newMargin);
+
+  const revDiff = newRevenue - revenue;
+  const costDiff = newCosts - costs;
+  const profDiff = newProfit - profit;
+  const margDiff = newMargin - margin;
+
+  $('kpiRevenueChange').textContent = revDiff !== 0 ? (revDiff > 0 ? '+' : '') + fmt(revDiff) + '/mo' : '';
+  $('kpiRevenueChange').className = 'stat-change ' + (revDiff >= 0 ? 'positive' : 'negative');
+  $('kpiCostsChange').textContent = costDiff !== 0 ? (costDiff > 0 ? '+' : '') + fmt(costDiff) + '/mo' : '';
+  $('kpiCostsChange').className = 'stat-change ' + (costDiff <= 0 ? 'positive' : 'negative');
+  $('kpiProfitChange').textContent = profDiff !== 0 ? (profDiff > 0 ? '+' : '') + fmt(profDiff) + '/mo' : '';
+  $('kpiProfitChange').className = 'stat-change ' + (profDiff >= 0 ? 'positive' : 'negative');
+  $('kpiMarginChange').textContent = margDiff !== 0 ? (margDiff > 0 ? '+' : '') + pct(margDiff) : '';
+  $('kpiMarginChange').className = 'stat-change ' + (margDiff >= 0 ? 'positive' : 'negative');
+
+  // Comparison chart
+  const maxVal = Math.max(revenue, newRevenue, costs, newCosts, Math.abs(profit), Math.abs(newProfit)) || 1;
+  const metrics = [
+    { label: 'Revenue', before: revenue, after: newRevenue },
+    { label: 'Costs', before: costs, after: newCosts },
+    { label: 'Refunds', before: refunds, after: newRefunds },
+    { label: 'Profit', before: profit, after: newProfit },
+  ];
+
+  let chartHTML = '';
+  metrics.forEach(m => {
+    const h1 = Math.max(2, (Math.abs(m.before) / maxVal) * 180);
+    const h2 = Math.max(2, (Math.abs(m.after) / maxVal) * 180);
+    chartHTML += `
+      <div class="bar-group">
+        <div style="display:flex;gap:3px;align-items:flex-end;height:100%;width:100%">
+          <div class="bar" style="height:${h1}px;background:#94a3b8;flex:1">
+            <div class="bar-value">${fmt(m.before)}</div>
+          </div>
+          <div class="bar" style="height:${h2}px;background:${m.label === 'Profit' ? (m.after >= 0 ? '#12b886' : '#fa5252') : '#228be6'};flex:1">
+            <div class="bar-value">${fmt(m.after)}</div>
+          </div>
+        </div>
+        <div class="bar-label">${m.label}</div>
+      </div>`;
+  });
+  $('comparisonChart').innerHTML = chartHTML;
+
+  // Donut chart
+  const segments = [
+    { label: 'Profit', value: Math.max(0, newProfit), color: '#12b886' },
+    { label: 'Costs', value: newCosts, color: '#fa5252' },
+    { label: 'Refunds', value: newRefunds, color: '#fd7e14' },
+  ];
+  const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
+  let offset = 0;
+  const r = 70, cx = 100, cy = 100;
+  const circ = 2 * Math.PI * r;
+  let svg = '';
+  segments.forEach(seg => {
+    const pctVal = seg.value / total;
+    const dash = circ * pctVal;
+    const gap = circ - dash;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="25"
+      stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += dash;
+  });
+  svg += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#1e293b">${fmt(newProfit)}</text>`;
+  svg += `<text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="10" fill="#64748b">Net Profit</text>`;
+  $('donutChart').innerHTML = svg;
+
+  let legendHTML = '';
+  segments.forEach(seg => {
+    const p = ((seg.value / total) * 100).toFixed(1);
+    legendHTML += `<div><div class="dot" style="background:${seg.color}"></div>${seg.label}: ${fmt(seg.value)} (${p}%)</div>`;
+  });
+  $('donutLegend').innerHTML = legendHTML;
+
+  // Insights
+  if (aovInc > 0) {
+    $('insight1').textContent = `Increasing AOV by ${fmt(aovInc)} on ${newOrders.toLocaleString()} orders adds ${fmt(aovInc * newOrders * 12)}/year in revenue. This is the highest-ROI lever \u2014 costs nothing extra to fulfill.`;
+    $('insightBox1').className = 'insight-box';
+  } else {
+    $('insight1').textContent = 'Try increasing AOV \u2014 even $5 more per order can add tens of thousands per year with zero extra cost.';
+    $('insightBox1').className = 'insight-box';
+  }
+
+  if (costRed > 0) {
+    const saved = costs * (costRed / 100) * 12;
+    $('insight2').textContent = `Cutting costs by ${costRed}% saves ${fmt(saved)}/year. Use the Cost Breakdown chart to identify which categories have the most room to reduce.`;
+    $('insightBox2').className = 'insight-box';
+  } else if (refRed > 0) {
+    const saved = refunds * (refRed / 100) * 12;
+    $('insight2').textContent = `Reducing refunds by ${refRed}% recovers ${fmt(saved)}/year. The Order Status chart helps identify root causes of returns.`;
+    $('insightBox2').className = 'insight-box';
+  } else if (margin < 20) {
+    $('insight2').textContent = `Warning: Your margin is ${pct(margin)} \u2014 below the healthy 30% threshold. Use the Profit Margin Trend chart to track improvement.`;
+    $('insightBox2').className = 'insight-box warning';
+  } else {
+    $('insight2').textContent = 'Adjust the improvement sliders to see how small changes compound into significant annual impact.';
+    $('insightBox2').className = 'insight-box';
+  }
+
+  // 12-month projection
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let projHTML = '';
+  const maxProj = Math.max(Math.abs(profit), Math.abs(newProfit)) * 1.2 || 1;
+  months.forEach((m, i) => {
+    const h1 = Math.max(2, (Math.abs(profit) / maxProj) * 220);
+    const growthFactor = 1 + (orderGrow / 100) * ((i + 1) / 12);
+    const projProfit = (newRevenue * growthFactor - newRefunds * growthFactor - newCosts * growthFactor) / (1 + orderGrow / 100) * growthFactor;
+    const h2 = Math.max(2, (Math.abs(projProfit) / maxProj) * 220);
+    projHTML += `
+      <div class="bar-group">
+        <div style="display:flex;gap:2px;align-items:flex-end;height:100%;width:100%">
+          <div class="bar" style="height:${h1}px;background:#94a3b8;flex:1"></div>
+          <div class="bar" style="height:${h2}px;background:#12b886;flex:1"></div>
+        </div>
+        <div class="bar-label">${m}</div>
+      </div>`;
+  });
+  $('projectionChart').innerHTML = projHTML;
+}
+
+update();
+</script>
+</body>
+</html>
