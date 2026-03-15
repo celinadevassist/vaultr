@@ -359,16 +359,29 @@ function update() {
   // Annual impact
   const annualDiff = (newProfit - profit) * 12;
 
+  // Calculate impact breakdown
+  const revenueImpact = (newRevenue - revenue) * 12;
+  const costImpact = (baseCosts - newCosts) * 12;
+  const refundImpact = (refunds - newRefunds) * 12;
+
   // Update highlight
   $('annualProfit').textContent = (annualDiff >= 0 ? '+' : '') + fmt(annualDiff);
   const isPositive = annualDiff >= 0;
   $('profitHighlight').style.background = isPositive
     ? 'linear-gradient(135deg, #12b886, #0ca678)'
     : 'linear-gradient(135deg, #fa5252, #e03131)';
-  $('profitDesc').textContent = annualDiff > 0
-    ? `Extra ${fmt(annualDiff)} per year from improvements`
-    : annualDiff === 0 ? 'Adjust improvement sliders to see impact'
-    : `Loss of ${fmt(Math.abs(annualDiff))} per year \u2014 scenario shows decline`;
+
+  // Build breakdown description
+  const parts = [];
+  if (Math.abs(revenueImpact) > 0) parts.push((revenueImpact > 0 ? '+' : '') + fmt(revenueImpact) + ' revenue');
+  if (Math.abs(costImpact) > 0) parts.push((costImpact > 0 ? '+' : '') + fmt(costImpact) + ' cost savings');
+  if (Math.abs(refundImpact) > 0) parts.push((refundImpact > 0 ? '+' : '') + fmt(refundImpact) + ' refund savings');
+
+  if (parts.length > 0) {
+    $('profitDesc').textContent = parts.join('  |  ');
+  } else {
+    $('profitDesc').textContent = 'Adjust improvement sliders to see impact';
+  }
 
   // Update KPIs
   $('kpiRevenue').textContent = fmt(newRevenue);
