@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CartFlow Analytics - Interactive Profit Simulator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+  h1 { font-size: 2rem; margin-bottom: 5px; }
+  h3 { font-size: 1.1rem; margin-bottom: 10px; color: #475569; }
+  .subtitle { color: #64748b; font-size: 1rem; margin-bottom: 30px; }
+  .grid { display: grid; gap: 20px; margin-bottom: 30px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  @media (max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  @media (max-width: 500px) { .grid-4 { grid-template-columns: 1fr; } }
+  .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+  .stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
+  .stat-label { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+  .stat-change { font-size: 0.8rem; margin-top: 4px; font-weight: 600; }
+  .positive { color: #12b886; }
+  .negative { color: #fa5252; }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; margin-bottom: 4px; font-size: 0.85rem; font-weight: 500; color: #475569; }
+  .input-row { display: flex; gap: 8px; align-items: center; }
+  .input-row input[type="range"] { flex: 1; height: 6px; -webkit-appearance: none; background: #e2e8f0; border-radius: 3px; outline: none; }
+  .input-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #228be6; cursor: pointer; }
+  .input-row input[type="number"] { width: 100px; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; text-align: right; font-weight: 600; color: #228be6; }
+  .input-row input[type="number"]:focus { outline: none; border-color: #228be6; }
+  .input-row .unit { font-size: 0.8rem; color: #64748b; min-width: 20px; }
+  select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; background: #fff; cursor: pointer; }
+  select:focus { outline: none; border-color: #228be6; }
+  .country-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; padding: 12px 16px; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; }
+  .country-bar label { font-weight: 600; font-size: 0.9rem; color: #334155; }
+  .flag { font-size: 1.4rem; }
+  .toggle-group { display: flex; gap: 2px; background: #e2e8f0; border-radius: 8px; padding: 2px; }
+  .toggle-btn { padding: 6px 14px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; color: #64748b; transition: all 0.2s; }
+  .toggle-btn.active { background: #228be6; color: #fff; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding-top: 10px; }
+  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.4s ease; min-height: 2px; }
+  .bar-label { font-size: 0.7rem; color: #64748b; text-align: center; margin-top: 4px; }
+  .bar-value { font-size: 0.65rem; color: #fff; text-align: center; padding: 2px; font-weight: 600; }
+  .legend { display: flex; gap: 20px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .donut-container { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+  .donut-legend { font-size: 0.8rem; }
+  .donut-legend div { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .donut-legend .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .insight-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-top: 15px; }
+  .insight-box.warning { background: #fef3c7; border-color: #fde68a; }
+  .insight-box.danger { background: #fef2f2; border-color: #fecaca; }
+  .insight-box p { font-size: 0.9rem; color: #166534; }
+  .insight-box.warning p { color: #92400e; }
+  .insight-box.danger p { color: #991b1b; }
+  .highlight { background: linear-gradient(135deg, #228be6, #1971c2); color: #fff; border-radius: 12px; padding: 30px; margin-bottom: 30px; text-align: center; }
+  .highlight p { color: #bfdbfe; font-size: 1.1rem; }
+  .highlight .big { font-size: 3rem; font-weight: 800; color: #fff; }
+  .footer { text-align: center; padding: 30px; color: #94a3b8; font-size: 0.85rem; }
+  .section-divider { border: none; border-top: 1px solid #e2e8f0; margin: 10px 0 25px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>CartFlow Analytics</h1>
+  <p class="subtitle">Interactive Profit Simulator &mdash; Adjust values to see real-time impact on your business</p>
+
+  <!-- Country / Currency Selector -->
+  <div class="country-bar">
+    <label>Country:</label>
+    <select id="country" onchange="update()">
+      <option value="US" data-flag="🇺🇸" data-currency="USD" data-symbol="$" data-locale="en-US">🇺🇸 United States (USD)</option>
+      <option value="AE" data-flag="🇦🇪" data-currency="AED" data-symbol="د.إ" data-locale="en-AE">🇦🇪 UAE (AED)</option>
+      <option value="SA" data-flag="🇸🇦" data-currency="SAR" data-symbol="﷼" data-locale="en-SA">🇸🇦 Saudi Arabia (SAR)</option>
+      <option value="EG" data-flag="🇪🇬" data-currency="EGP" data-symbol="ج.م" data-locale="en-EG">🇪🇬 Egypt (EGP)</option>
+      <option value="GB" data-flag="🇬🇧" data-currency="GBP" data-symbol="£" data-locale="en-GB">🇬🇧 United Kingdom (GBP)</option>
+      <option value="EU" data-flag="🇪🇺" data-currency="EUR" data-symbol="€" data-locale="en-DE">🇪🇺 Europe (EUR)</option>
+      <option value="IN" data-flag="🇮🇳" data-currency="INR" data-symbol="₹" data-locale="en-IN">🇮🇳 India (INR)</option>
+      <option value="PK" data-flag="🇵🇰" data-currency="PKR" data-symbol="₨" data-locale="en-PK">🇵🇰 Pakistan (PKR)</option>
+      <option value="TR" data-flag="🇹🇷" data-currency="TRY" data-symbol="₺" data-locale="en-TR">🇹🇷 Turkey (TRY)</option>
+      <option value="JO" data-flag="🇯🇴" data-currency="JOD" data-symbol="د.ا" data-locale="en-JO">🇯🇴 Jordan (JOD)</option>
+      <option value="KW" data-flag="🇰🇼" data-currency="KWD" data-symbol="د.ك" data-locale="en-KW">🇰🇼 Kuwait (KWD)</option>
+      <option value="QA" data-flag="🇶🇦" data-currency="QAR" data-symbol="ر.ق" data-locale="en-QA">🇶🇦 Qatar (QAR)</option>
+      <option value="BH" data-flag="🇧🇭" data-currency="BHD" data-symbol="د.ب" data-locale="en-BH">🇧🇭 Bahrain (BHD)</option>
+      <option value="OM" data-flag="🇴🇲" data-currency="OMR" data-symbol="ر.ع" data-locale="en-OM">🇴🇲 Oman (OMR)</option>
+      <option value="MA" data-flag="🇲🇦" data-currency="MAD" data-symbol="د.م" data-locale="en-MA">🇲🇦 Morocco (MAD)</option>
+      <option value="NG" data-flag="🇳🇬" data-currency="NGN" data-symbol="₦" data-locale="en-NG">🇳🇬 Nigeria (NGN)</option>
+      <option value="ZA" data-flag="🇿🇦" data-currency="ZAR" data-symbol="R" data-locale="en-ZA">🇿🇦 South Africa (ZAR)</option>
+      <option value="MY" data-flag="🇲🇾" data-currency="MYR" data-symbol="RM" data-locale="en-MY">🇲🇾 Malaysia (MYR)</option>
+      <option value="SG" data-flag="🇸🇬" data-currency="SGD" data-symbol="S$" data-locale="en-SG">🇸🇬 Singapore (SGD)</option>
+      <option value="AU" data-flag="🇦🇺" data-currency="AUD" data-symbol="A$" data-locale="en-AU">🇦🇺 Australia (AUD)</option>
+    </select>
+    <span class="flag" id="countryFlag">🇺🇸</span>
+    <span style="color:#64748b;font-size:0.85rem" id="currencyLabel">Currency: USD</span>
+  </div>
+
+  <!-- Business Parameters -->
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Business Parameters</h3>
+
+      <div class="input-group">
+        <label>Monthly Revenue</label>
+        <div class="input-row">
+          <input type="range" id="revenue" min="1000" max="2000000" value="50000" step="1000" oninput="syncSlider(this,'revenueNum')">
+          <input type="number" id="revenueNum" value="50000" min="0" step="1000" oninput="syncNum(this,'revenue')">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Monthly Orders</label>
+        <div class="input-row">
+          <input type="range" id="orders" min="1" max="10000" value="500" step="1" oninput="syncSlider(this,'ordersNum')">
+          <input type="number" id="ordersNum" value="500" min="0" step="1" oninput="syncNum(this,'orders')">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Running Costs</label>
+        <div class="input-row">
+          <div class="toggle-group">
+            <button class="toggle-btn active" onclick="setCostMode('pct')" id="costModePct">%</button>
+            <button class="toggle-btn" onclick="setCostMode('fixed')" id="costModeFixed">Fixed</button>
+          </div>
+        </div>
+        <div class="input-row" id="costPctRow">
+          <input type="range" id="costs" min="0" max="90" value="30" step="1" oninput="syncSlider(this,'costsNum')">
+          <input type="number" id="costsNum" value="30" min="0" max="100" step="1" oninput="syncNum(this,'costs')">
+          <span class="unit">%</span>
+        </div>
+        <div class="input-row" id="costFixedRow" style="display:none">
+          <input type="range" id="costsFixed" min="0" max="500000" value="15000" step="500" oninput="syncSlider(this,'costsFixedNum')">
+          <input type="number" id="costsFixedNum" value="15000" min="0" step="500" oninput="syncNum(this,'costsFixed')">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Refund Rate</label>
+        <div class="input-row">
+          <input type="range" id="refundRate" min="0" max="30" value="3" step="0.5" oninput="syncSlider(this,'refundNum')">
+          <input type="number" id="refundNum" value="3" min="0" max="100" step="0.5" oninput="syncNum(this,'refundRate')">
+          <span class="unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What-If Scenarios</h3>
+      <p style="font-size:0.8rem;color:#64748b;margin-bottom:16px">
+        Simulate how business changes affect your profit. Set the <b>initial change</b> (what happens in Month 1)
+        and the <b>monthly growth</b> (how much that change improves each month after).
+      </p>
+
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px">
+        <label style="color:#228be6;font-weight:600">Average Order Value (AOV) Change</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          How much more (or less) each customer spends per order.
+          Example: +$5 means each order is $5 bigger on average through bundles, upsells, or higher prices.
+        </p>
+        <div class="input-row">
+          <input type="range" id="aovIncrease" min="-50" max="100" value="0" step="1" oninput="syncSlider(this,'aovNum')">
+          <input type="number" id="aovNum" value="0" step="1" oninput="syncNum(this,'aovIncrease')">
+        </div>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
+          <input type="range" id="aovCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'aovCompNum')" style="flex:1">
+          <input type="number" id="aovCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'aovCompound')" style="width:65px">
+          <span class="unit">%</span>
+        </div>
+        <span style="font-size:0.65rem;color:#94a3b8">If AOV grows 2%/month: Month 1 = +$5, Month 6 = +$5.52, Month 12 = +$6.10</span>
+      </div>
+
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px">
+        <label style="color:#fa5252;font-weight:600">Running Costs Change %</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          Reduce costs by renegotiating suppliers, cutting marketing waste, or automating tasks.
+          +10% = you cut 10% of costs. -10% = costs increased 10% (e.g., hiring more staff).
+        </p>
+        <div class="input-row">
+          <input type="range" id="costReduction" min="-50" max="50" value="0" step="1" oninput="syncSlider(this,'costRedNum')">
+          <input type="number" id="costRedNum" value="0" min="-100" max="100" step="1" oninput="syncNum(this,'costReduction')">
+          <span class="unit">%</span>
+        </div>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
+          <input type="range" id="costCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'costCompNum')" style="flex:1">
+          <input type="number" id="costCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'costCompound')" style="width:65px">
+          <span class="unit">%</span>
+        </div>
+        <span style="font-size:0.65rem;color:#94a3b8">Growth = how fast cost savings deepen each month through ongoing optimization</span>
+      </div>
+
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px">
+        <label style="color:#fd7e14;font-weight:600">Refund/Return Rate Change %</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          Reduce refunds by improving product quality, descriptions, or shipping.
+          +30% = you reduced refunds by 30%. -20% = refunds increased 20%.
+        </p>
+        <div class="input-row">
+          <input type="range" id="refundReduction" min="-100" max="100" value="0" step="1" oninput="syncSlider(this,'refRedNum')">
+          <input type="number" id="refRedNum" value="0" min="-200" max="100" step="1" oninput="syncNum(this,'refundReduction')">
+          <span class="unit">%</span>
+        </div>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
+          <input type="range" id="refundCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'refCompNum')" style="flex:1">
+          <input type="number" id="refCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'refundCompound')" style="width:65px">
+          <span class="unit">%</span>
+        </div>
+        <span style="font-size:0.65rem;color:#94a3b8">Growth = how fast refund rate improves as you fix root causes</span>
+      </div>
+
+      <div class="input-group" style="background:#f8fafc;padding:12px;border-radius:8px">
+        <label style="color:#12b886;font-weight:600">Number of Orders Change %</label>
+        <p style="font-size:0.75rem;color:#64748b;margin:2px 0 8px">
+          More customers buying from you through marketing, SEO, or word of mouth.
+          +20% = 20% more orders. -15% = lost 15% of order volume.
+        </p>
+        <div class="input-row">
+          <input type="range" id="orderGrowth" min="-50" max="100" value="0" step="1" oninput="syncSlider(this,'orderGrowthNum')">
+          <input type="number" id="orderGrowthNum" value="0" min="-100" max="200" step="1" oninput="syncNum(this,'orderGrowth')">
+          <span class="unit">%</span>
+        </div>
+        <div class="input-row" style="margin-top:6px">
+          <span style="font-size:0.7rem;color:#64748b;min-width:110px">Monthly growth %</span>
+          <input type="range" id="orderCompound" min="0" max="10" value="0" step="0.5" oninput="syncSlider(this,'orderCompNum')" style="flex:1">
+          <input type="number" id="orderCompNum" value="0" min="0" max="20" step="0.5" oninput="syncNum(this,'orderCompound')" style="width:65px">
+          <span class="unit">%</span>
+        </div>
+        <span style="font-size:0.65rem;color:#94a3b8">Growth = how fast new customer acquisition accelerates monthly</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annual Impact -->
+  <div class="highlight" id="profitHighlight">
+    <p>Annual Profit Impact</p>
+    <div class="big" id="annualProfit">$0</div>
+    <p id="profitDesc">Adjust the improvement sliders to see the impact</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-4">
+    <div class="card" style="border-top: 3px solid #12b886">
+      <div class="stat-label">Monthly Revenue</div>
+      <div class="stat-value positive" id="kpiRevenue">$50,000</div>
+      <div class="stat-change" id="kpiRevenueChange"></div>
+    </div>
+    <div class="card" style="border-top: 3px solid #fa5252">
+      <div class="stat-label">Monthly Costs</div>
+      <div class="stat-value negative" id="kpiCosts">$15,000</div>
+      <div class="stat-change" id="kpiCostsChange"></div>
+    </div>
+    <div class="card" style="border-top: 3px solid #228be6">
+      <div class="stat-label">Monthly Profit</div>
+      <div class="stat-value" id="kpiProfit" style="color:#228be6">$33,500</div>
+      <div class="stat-change" id="kpiProfitChange"></div>
+    </div>
+    <div class="card" style="border-top: 3px solid #7950f2">
+      <div class="stat-label">Profit Margin</div>
+      <div class="stat-value" id="kpiMargin" style="color:#7950f2">67%</div>
+      <div class="stat-change" id="kpiMarginChange"></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Before vs After (Monthly)</h3>
+      <div class="bar-chart" id="comparisonChart"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div>Before</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#228be6"></div>After</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Profit Breakdown</h3>
+      <div class="donut-container">
+        <svg id="donutChart" width="200" height="200" viewBox="0 0 200 200"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="grid grid-2" style="margin-top: 20px">
+    <div id="insightBox1" class="insight-box"><p id="insight1">Adjust sliders above to see personalized insights</p></div>
+    <div id="insightBox2" class="insight-box"><p id="insight2">Each insight updates in real-time as you change values</p></div>
+  </div>
+
+  <!-- Break-Even & Timeline Analysis -->
+  <div class="card" style="margin-top: 20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+      <div>
+        <h3 style="margin-bottom:2px">Break-Even & Profitability Timeline</h3>
+        <p style="font-size:0.8rem;color:#64748b">When does the project become profitable following the improvement plan?</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:0.85rem;font-weight:500">Timeline:</label>
+        <select id="timelineSelect" onchange="update()" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem">
+          <option value="6">6 Months</option>
+          <option value="12" selected>1 Year</option>
+          <option value="24">2 Years</option>
+          <option value="36">3 Years</option>
+          <option value="60">5 Years</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <div class="input-group" style="margin:0">
+        <label>Initial Investment / Setup Cost (one-time)</label>
+        <div class="input-row">
+          <input type="range" id="initialInvestment" min="0" max="500000" value="0" step="1000" oninput="syncSlider(this,'investNum')">
+          <input type="number" id="investNum" value="0" min="0" step="1000" oninput="syncNum(this,'initialInvestment')">
+        </div>
+        <span style="font-size:0.7rem;color:#94a3b8">Set to 0 if already operational</span>
+      </div>
+      <div></div>
+    </div>
+
+    <!-- Market Capacity Parameters -->
+    <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:16px;margin-bottom:20px">
+      <h3 style="margin-bottom:4px;color:#7c3aed;font-size:1rem">Market & Order Capacity</h3>
+      <p style="font-size:0.75rem;color:#64748b;margin-bottom:12px">
+        Define your target market size to predict order saturation and customer repeat buying.
+      </p>
+      <div class="grid grid-2" style="gap:12px;margin-bottom:0">
+        <div class="input-group" style="margin:0">
+          <label>Total Addressable Market (potential customers)</label>
+          <div class="input-row">
+            <input type="range" id="marketSize" min="100" max="1000000" value="10000" step="100" oninput="syncSlider(this,'marketSizeNum')">
+            <input type="number" id="marketSizeNum" value="10000" min="0" step="100" oninput="syncNum(this,'marketSize')">
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">How many people could buy your product in your region/niche</span>
+        </div>
+        <div class="input-group" style="margin:0">
+          <label>Avg purchases per customer per year</label>
+          <div class="input-row">
+            <input type="range" id="purchaseFreq" min="1" max="52" value="4" step="1" oninput="syncSlider(this,'purchaseFreqNum')">
+            <input type="number" id="purchaseFreqNum" value="4" min="1" max="365" step="1" oninput="syncNum(this,'purchaseFreq')">
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">How many times the same customer buys per year (1 = one-time, 12 = monthly, 52 = weekly)</span>
+        </div>
+        <div class="input-group" style="margin:0">
+          <label>Market penetration rate % (how much of the market you can capture)</label>
+          <div class="input-row">
+            <input type="range" id="marketPenetration" min="0.1" max="30" value="5" step="0.1" oninput="syncSlider(this,'marketPenNum')">
+            <input type="number" id="marketPenNum" value="5" min="0" max="100" step="0.1" oninput="syncNum(this,'marketPenetration')">
+            <span class="unit">%</span>
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">Realistic: 1-5% for new, 5-15% for established, 15%+ for market leaders</span>
+        </div>
+        <div class="input-group" style="margin:0">
+          <label>Customer acquisition cost (CAC)</label>
+          <div class="input-row">
+            <input type="range" id="cac" min="0" max="200" value="15" step="1" oninput="syncSlider(this,'cacNum')">
+            <input type="number" id="cacNum" value="15" min="0" step="1" oninput="syncNum(this,'cac')">
+          </div>
+          <span style="font-size:0.65rem;color:#94a3b8">How much it costs to acquire one new customer (ads, marketing, etc.)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Analysis KPIs -->
+    <div class="grid grid-4" style="margin-bottom:20px">
+      <div class="card" style="border-top:3px solid #7c3aed;padding:14px">
+        <div class="stat-label">Avg Orders / Month</div>
+        <div class="stat-value" id="avgOrdersMonth" style="color:#7c3aed;font-size:1.5rem">-</div>
+        <div class="stat-change" id="avgOrdersDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #0ea5e9;padding:14px">
+        <div class="stat-label">Max Market Orders / Year</div>
+        <div class="stat-value" id="maxMarketOrders" style="color:#0ea5e9;font-size:1.5rem">-</div>
+        <div class="stat-change" id="maxMarketDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #f59e0b;padding:14px">
+        <div class="stat-label">Market Saturation</div>
+        <div class="stat-value" id="marketSaturation" style="color:#f59e0b;font-size:1.5rem">-</div>
+        <div class="stat-change" id="saturationDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #10b981;padding:14px">
+        <div class="stat-label">Customer LTV vs CAC</div>
+        <div class="stat-value" id="ltvCacRatio" style="color:#10b981;font-size:1.5rem">-</div>
+        <div class="stat-change" id="ltvCacDesc" style="color:#64748b"></div>
+      </div>
+    </div>
+
+    <!-- Break-Even Summary Cards -->
+    <div class="grid grid-4" style="margin:20px 0">
+      <div class="card" style="border-top:3px solid #7950f2;padding:14px">
+        <div class="stat-label">Break-Even Point</div>
+        <div class="stat-value" id="breakEvenMonth" style="color:#7950f2;font-size:1.5rem">-</div>
+        <div class="stat-change" id="breakEvenDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #12b886;padding:14px">
+        <div class="stat-label">Cumulative Profit</div>
+        <div class="stat-value positive" id="cumulativeProfit" style="font-size:1.5rem">$0</div>
+        <div class="stat-change" id="cumulativeProfitDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #228be6;padding:14px">
+        <div class="stat-label">Profit Without Changes</div>
+        <div class="stat-value" id="cumulativeBaseline" style="color:#228be6;font-size:1.5rem">$0</div>
+        <div class="stat-change" id="cumulativeBaselineDesc" style="color:#64748b"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #fd7e14;padding:14px">
+        <div class="stat-label">Extra Profit from Plan</div>
+        <div class="stat-value" id="extraProfit" style="color:#fd7e14;font-size:1.5rem">$0</div>
+        <div class="stat-change" id="extraProfitDesc" style="color:#64748b"></div>
+      </div>
+    </div>
+
+    <!-- Cumulative Chart -->
+    <div style="position:relative">
+      <canvas id="timelineCanvas" width="1060" height="300" style="width:100%;height:300px"></canvas>
+    </div>
+    <div class="legend" style="margin-top:8px">
+      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div>Current Path (no changes)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#12b886"></div>With Improvements</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fa5252"></div>Investment Recovery Line</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7950f2"></div>Break-Even Point</div>
+    </div>
+
+    <!-- Yearly Profit Breakdown -->
+    <div style="margin-top:24px">
+      <h3 style="margin-bottom:12px">Yearly Profit Forecast</h3>
+      <div id="yearlyBreakdown" class="grid" style="gap:10px"></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div style="margin-top:24px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:20px">
+      <h3 style="margin-bottom:10px;color:#1e40af">Recommendations</h3>
+      <div id="recommendations" style="font-size:0.9rem;color:#1e3a5f"></div>
+    </div>
+
+    <!-- Monthly Breakdown Table -->
+    <details style="margin-top:20px">
+      <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;color:#334155;padding:8px 0">
+        View Monthly Breakdown Table
+      </summary>
+      <div style="overflow-x:auto;margin-top:10px">
+        <table id="monthlyTable" style="width:100%;border-collapse:collapse;font-size:0.8rem">
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <div class="footer">
+    CartFlow Analytics &bull; Data-Driven Decisions, Real Business Impact &bull; cartflow.smartlabtec.com
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const pct = n => n.toFixed(1) + '%';
+
+let costMode = 'pct'; // 'pct' or 'fixed'
+let currencyCode = 'USD';
+let currencyLocale = 'en-US';
+
+function getCountryInfo() {
+  const sel = $('country');
+  const opt = sel.options[sel.selectedIndex];
+  return {
+    currency: opt.dataset.currency,
+    symbol: opt.dataset.symbol,
+    locale: opt.dataset.locale,
+    flag: opt.dataset.flag,
+  };
+}
+
+function fmt(n) {
+  try {
+    return new Intl.NumberFormat(currencyLocale, {
+      style: 'currency', currency: currencyCode,
+      minimumFractionDigits: 0, maximumFractionDigits: 0,
+    }).format(Math.round(n));
+  } catch(e) {
+    return currencyCode + ' ' + Math.round(n).toLocaleString();
+  }
+}
+
+function syncSlider(slider, numId) {
+  $(numId).value = slider.value;
+  update();
+}
+
+function syncNum(numInput, sliderId) {
+  $(sliderId).value = numInput.value;
+  update();
+}
+
+function setCostMode(mode) {
+  costMode = mode;
+  $('costModePct').className = 'toggle-btn' + (mode === 'pct' ? ' active' : '');
+  $('costModeFixed').className = 'toggle-btn' + (mode === 'fixed' ? ' active' : '');
+  $('costPctRow').style.display = mode === 'pct' ? 'flex' : 'none';
+  $('costFixedRow').style.display = mode === 'fixed' ? 'flex' : 'none';
+  update();
+}
+
+function update() {
+  // Country info
+  const info = getCountryInfo();
+  currencyCode = info.currency;
+  currencyLocale = info.locale;
+  $('countryFlag').textContent = info.flag;
+  $('currencyLabel').textContent = 'Currency: ' + info.currency;
+
+  // Read values
+  const revenue = +$('revenue').value;
+  const orders = +$('orders').value;
+  const refundPct = +$('refundRate').value;
+  const aovInc = +$('aovIncrease').value;
+  const costRed = +$('costReduction').value;
+  const refRed = +$('refundReduction').value;
+  const orderGrow = +$('orderGrowth').value;
+
+  // Costs: percentage or fixed
+  let baseCosts;
+  if (costMode === 'pct') {
+    const costsPct = +$('costs').value;
+    baseCosts = revenue * (costsPct / 100);
+  } else {
+    baseCosts = +$('costsFixed').value;
+  }
+
+  // Before calculations
+  const aov = orders > 0 ? revenue / orders : 0;
+  const refunds = revenue * (refundPct / 100);
+  const netRevenue = revenue - refunds;
+  const profit = netRevenue - baseCosts;
+  const margin = netRevenue > 0 ? (profit / netRevenue) * 100 : 0;
+
+  // After calculations (improvements can be negative)
+  const newOrders = Math.max(0, Math.round(orders * (1 + orderGrow / 100)));
+  const newAOV = Math.max(0, aov + aovInc);
+  const newRevenue = newOrders * newAOV;
+  const newRefunds = newRevenue * (refundPct / 100) * (1 - refRed / 100);
+  const newCosts = baseCosts * (newRevenue / (revenue || 1)) * (1 - costRed / 100);
+  const newNetRevenue = newRevenue - newRefunds;
+  const newProfit = newNetRevenue - newCosts;
+  const newMargin = newNetRevenue > 0 ? (newProfit / newNetRevenue) * 100 : 0;
+
+  // Annual impact
+  const annualDiff = (newProfit - profit) * 12;
+
+  // Calculate impact breakdown
+  const revenueImpact = (newRevenue - revenue) * 12;
+  const costImpact = (baseCosts - newCosts) * 12;
+  const refundImpact = (refunds - newRefunds) * 12;
+
+  // Update highlight
+  $('annualProfit').textContent = (annualDiff >= 0 ? '+' : '') + fmt(annualDiff);
+  const isPositive = annualDiff >= 0;
+  $('profitHighlight').style.background = isPositive
+    ? 'linear-gradient(135deg, #12b886, #0ca678)'
+    : 'linear-gradient(135deg, #fa5252, #e03131)';
+
+  // Build breakdown description
+  const parts = [];
+  if (Math.abs(revenueImpact) > 0) parts.push((revenueImpact > 0 ? '+' : '') + fmt(revenueImpact) + ' revenue');
+  if (Math.abs(costImpact) > 0) parts.push((costImpact > 0 ? '+' : '') + fmt(costImpact) + ' cost savings');
+  if (Math.abs(refundImpact) > 0) parts.push((refundImpact > 0 ? '+' : '') + fmt(refundImpact) + ' refund savings');
+
+  if (parts.length > 0) {
+    $('profitDesc').textContent = parts.join('  |  ');
+  } else {
+    $('profitDesc').textContent = 'Adjust improvement sliders to see impact';
+  }
+
+  // Update KPIs
+  $('kpiRevenue').textContent = fmt(newRevenue);
+  $('kpiCosts').textContent = fmt(newCosts);
+  $('kpiProfit').textContent = fmt(newProfit);
+  $('kpiProfit').style.color = newProfit >= 0 ? '#228be6' : '#fa5252';
+  $('kpiMargin').textContent = pct(newMargin);
+  $('kpiMargin').style.color = newMargin >= 30 ? '#7950f2' : '#fa5252';
+
+  const revDiff = newRevenue - revenue;
+  const costDiff = newCosts - baseCosts;
+  const profDiff = newProfit - profit;
+  const margDiff = newMargin - margin;
+
+  setChange('kpiRevenueChange', revDiff, true);
+  setChange('kpiCostsChange', costDiff, false);
+  setChange('kpiProfitChange', profDiff, true);
+  $('kpiMarginChange').textContent = margDiff !== 0 ? (margDiff > 0 ? '+' : '') + pct(margDiff) : '';
+  $('kpiMarginChange').className = 'stat-change ' + (margDiff >= 0 ? 'positive' : 'negative');
+
+  // Comparison chart
+  const maxVal = Math.max(revenue, newRevenue, baseCosts, newCosts, Math.abs(profit), Math.abs(newProfit), 1);
+  const metrics = [
+    { label: 'Revenue', before: revenue, after: newRevenue },
+    { label: 'Costs', before: baseCosts, after: newCosts },
+    { label: 'Refunds', before: refunds, after: newRefunds },
+    { label: 'Profit', before: profit, after: newProfit },
+  ];
+
+  let chartHTML = '';
+  metrics.forEach(m => {
+    const h1 = Math.max(2, (Math.abs(m.before) / maxVal) * 180);
+    const h2 = Math.max(2, (Math.abs(m.after) / maxVal) * 180);
+    const c2 = m.label === 'Profit' ? (m.after >= 0 ? '#12b886' : '#fa5252') : '#228be6';
+    chartHTML += `
+      <div class="bar-group">
+        <div style="display:flex;gap:3px;align-items:flex-end;height:100%;width:100%">
+          <div class="bar" style="height:${h1}px;background:#94a3b8;flex:1"><div class="bar-value">${fmt(m.before)}</div></div>
+          <div class="bar" style="height:${h2}px;background:${c2};flex:1"><div class="bar-value">${fmt(m.after)}</div></div>
+        </div>
+        <div class="bar-label">${m.label}</div>
+      </div>`;
+  });
+  $('comparisonChart').innerHTML = chartHTML;
+
+  // Donut chart
+  const segments = [
+    { label: 'Profit', value: Math.max(0, newProfit), color: '#12b886' },
+    { label: 'Costs', value: Math.max(0, newCosts), color: '#fa5252' },
+    { label: 'Refunds', value: Math.max(0, newRefunds), color: '#fd7e14' },
+  ];
+  if (newProfit < 0) segments.push({ label: 'Loss', value: Math.abs(newProfit), color: '#1e293b' });
+
+  const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
+  let offset = 0;
+  const r = 70, cx = 100, cy = 100, circ = 2 * Math.PI * r;
+  let svg = '';
+  segments.forEach(seg => {
+    const pctVal = seg.value / total;
+    const dash = circ * pctVal;
+    const gap = circ - dash;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="25"
+      stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += dash;
+  });
+  const centerColor = newProfit >= 0 ? '#1e293b' : '#fa5252';
+  svg += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="13" font-weight="700" fill="${centerColor}">${fmt(newProfit)}</text>`;
+  svg += `<text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="10" fill="#64748b">${newProfit >= 0 ? 'Net Profit' : 'Net Loss'}</text>`;
+  $('donutChart').innerHTML = svg;
+
+  let legendHTML = '';
+  segments.forEach(seg => {
+    const p = ((seg.value / total) * 100).toFixed(1);
+    legendHTML += `<div><div class="dot" style="background:${seg.color}"></div>${seg.label}: ${fmt(seg.value)} (${p}%)</div>`;
+  });
+  $('donutLegend').innerHTML = legendHTML;
+
+  // Insights
+  updateInsights(aovInc, costRed, refRed, orderGrow, margin, newMargin, baseCosts, refunds, newOrders, profit, newProfit);
+
+  // Break-even & timeline analysis
+  updateTimeline(profit, newProfit, revenue, newRevenue, baseCosts, newCosts, refunds, newRefunds, orderGrow);
+}
+
+function updateTimeline(baseProfit, improvedProfit, baseRevenue, improvedRevenue, baseCosts, improvedCosts, baseRefunds, improvedRefunds, orderGrow) {
+  const totalMonths = +$('timelineSelect').value;
+  const investment = +$('initialInvestment').value;
+
+  // Per-scenario compound rates
+  const aovComp = +$('aovCompound').value / 100;
+  const costComp = +$('costCompound').value / 100;
+  const refundComp = +$('refundCompound').value / 100;
+  const orderComp = +$('orderCompound').value / 100;
+
+  // Base values for month 1 (already include the initial improvement)
+  const baseAOV = baseRevenue > 0 && improvedRevenue > 0 ? improvedRevenue / (improvedRevenue / (baseRevenue / (+$('orders').value || 1))) : 0;
+
+  // Generate monthly data for both paths
+  const data = [];
+  let cumBaseline = -investment;
+  let cumImproved = -investment;
+  let breakEvenMonth = -1;
+
+  for (let m = 1; m <= totalMonths; m++) {
+    // Baseline: flat monthly profit (no improvements)
+    cumBaseline += baseProfit;
+
+    // Each scenario compounds independently
+    // Revenue grows via AOV compound + order volume compound
+    const aovFactor = Math.pow(1 + aovComp, m - 1);
+    const orderFactor = Math.pow(1 + orderComp, m - 1);
+    const monthRevenue = improvedRevenue * aovFactor * orderFactor;
+
+    // Costs reduce further each month via cost compound
+    const costFactor = Math.pow(1 - costComp, m - 1);
+    const monthCosts = improvedCosts * aovFactor * orderFactor * costFactor;
+
+    // Refunds reduce further each month via refund compound
+    const refundFactor = Math.pow(1 - refundComp, m - 1);
+    const monthRefunds = improvedRefunds * aovFactor * orderFactor * refundFactor;
+
+    const monthProfit = monthRevenue - monthRefunds - monthCosts;
+    cumImproved += monthProfit;
+
+    // Check break-even (first time cumulative goes positive)
+    if (breakEvenMonth === -1 && cumImproved > 0) {
+      breakEvenMonth = m;
+    }
+
+    data.push({
+      month: m,
+      label: getMonthLabel(m, totalMonths),
+      baselineMonthly: baseProfit,
+      improvedMonthly: monthProfit,
+      cumBaseline,
+      cumImproved,
+    });
+  }
+
+  // Update summary cards
+  const lastData = data[data.length - 1];
+  $('cumulativeProfit').textContent = fmt(lastData.cumImproved);
+  $('cumulativeProfit').style.color = lastData.cumImproved >= 0 ? '#12b886' : '#fa5252';
+  $('cumulativeProfitDesc').textContent = `Over ${formatTimeline(totalMonths)}`;
+
+  $('cumulativeBaseline').textContent = fmt(lastData.cumBaseline);
+  $('cumulativeBaselineDesc').textContent = `Over ${formatTimeline(totalMonths)}`;
+
+  const extra = lastData.cumImproved - lastData.cumBaseline;
+  $('extraProfit').textContent = (extra >= 0 ? '+' : '') + fmt(extra);
+  $('extraProfit').style.color = extra >= 0 ? '#fd7e14' : '#fa5252';
+  $('extraProfitDesc').textContent = 'Improvement plan value';
+
+  if (investment === 0 && improvedProfit > 0) {
+    $('breakEvenMonth').textContent = 'Day 1';
+    $('breakEvenDesc').textContent = 'Already profitable';
+  } else if (breakEvenMonth > 0) {
+    $('breakEvenMonth').textContent = `Month ${breakEvenMonth}`;
+    $('breakEvenDesc').textContent = breakEvenMonth <= 3 ? 'Quick payback!' : breakEvenMonth <= 12 ? 'Within first year' : `~${Math.ceil(breakEvenMonth/12)} years`;
+  } else {
+    $('breakEvenMonth').textContent = 'Not reached';
+    $('breakEvenMonth').style.color = '#fa5252';
+    $('breakEvenDesc').textContent = `Not profitable in ${formatTimeline(totalMonths)}`;
+  }
+
+  // Draw canvas chart
+  drawTimelineChart(data, investment);
+
+  // Build monthly table
+  buildMonthlyTable(data, investment);
+  buildYearlyBreakdown(data);
+  updateMarketAnalysis(data, improvedRevenue, improvedProfit);
+  buildRecommendations(data, baseProfit, improvedProfit);
+}
+
+function getMonthLabel(m, total) {
+  if (total <= 12) return 'M' + m;
+  if (total <= 24) return m % 2 === 0 ? 'M' + m : '';
+  if (total <= 36) return m % 3 === 0 ? 'M' + m : '';
+  return m % 6 === 0 ? 'M' + m : '';
+}
+
+function formatTimeline(months) {
+  if (months < 12) return months + ' months';
+  const y = Math.floor(months / 12);
+  const m = months % 12;
+  return y + (y > 1 ? ' years' : ' year') + (m > 0 ? ` ${m}mo` : '');
+}
+
+function drawTimelineChart(data, investment) {
+  const canvas = $('timelineCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const pad = { top: 30, right: 20, bottom: 40, left: 70 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Find value range
+  const allVals = data.flatMap(d => [d.cumBaseline, d.cumImproved]);
+  allVals.push(-investment);
+  const maxVal = Math.max(...allVals, 0);
+  const minVal = Math.min(...allVals, 0);
+  const range = maxVal - minVal || 1;
+
+  const toX = (i) => pad.left + (i / (data.length - 1 || 1)) * chartW;
+  const toY = (v) => pad.top + (1 - (v - minVal) / range) * chartH;
+
+  // Grid lines
+  ctx.strokeStyle = '#e2e8f0';
+  ctx.lineWidth = 1;
+  const gridLines = 5;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = pad.top + (i / gridLines) * chartH;
+    const val = maxVal - (i / gridLines) * range;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(fmt(val), pad.left - 8, y + 4);
+  }
+
+  // Zero line
+  if (minVal < 0 && maxVal > 0) {
+    const zeroY = toY(0);
+    ctx.strokeStyle = '#fa5252'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#fa5252'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Break-Even Line', W - pad.right - 80, zeroY - 6);
+  }
+
+  // X-axis labels
+  ctx.fillStyle = '#64748b'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+  data.forEach((d, i) => {
+    if (d.label) ctx.fillText(d.label, toX(i), H - pad.bottom + 18);
+  });
+
+  // Draw baseline path (gray)
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    i === 0 ? ctx.moveTo(toX(i), toY(d.cumBaseline)) : ctx.lineTo(toX(i), toY(d.cumBaseline));
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw improved path with gradient fill
+  ctx.strokeStyle = '#12b886'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    i === 0 ? ctx.moveTo(toX(i), toY(d.cumImproved)) : ctx.lineTo(toX(i), toY(d.cumImproved));
+  });
+  ctx.stroke();
+
+  // Fill under improved line
+  const grad = ctx.createLinearGradient(0, pad.top, 0, H - pad.bottom);
+  grad.addColorStop(0, 'rgba(18, 184, 134, 0.15)');
+  grad.addColorStop(1, 'rgba(18, 184, 134, 0.02)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(toX(0), toY(data[0].cumImproved));
+  data.forEach((d, i) => ctx.lineTo(toX(i), toY(d.cumImproved)));
+  ctx.lineTo(toX(data.length - 1), H - pad.bottom);
+  ctx.lineTo(toX(0), H - pad.bottom);
+  ctx.closePath();
+  ctx.fill();
+
+  // Mark break-even point
+  const beIdx = data.findIndex(d => d.cumImproved > 0);
+  if (beIdx > 0) {
+    const x = toX(beIdx);
+    const y = toY(data[beIdx].cumImproved);
+    ctx.fillStyle = '#7950f2';
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7950f2'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Break-Even', x, y - 12);
+  }
+
+  // End values
+  const lastD = data[data.length - 1];
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillStyle = '#12b886'; ctx.textAlign = 'left';
+  ctx.fillText(fmt(lastD.cumImproved), toX(data.length - 1) + 4, toY(lastD.cumImproved) + 4);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText(fmt(lastD.cumBaseline), toX(data.length - 1) + 4, toY(lastD.cumBaseline) + 4);
+}
+
+function buildMonthlyTable(data, investment) {
+  let html = `<thead style="background:#f8fafc"><tr>
+    <th style="padding:6px 10px;text-align:left;border-bottom:2px solid #e2e8f0">Month</th>
+    <th style="padding:6px 10px;text-align:right;border-bottom:2px solid #e2e8f0">Monthly (Current)</th>
+    <th style="padding:6px 10px;text-align:right;border-bottom:2px solid #e2e8f0">Monthly (Improved)</th>
+    <th style="padding:6px 10px;text-align:right;border-bottom:2px solid #e2e8f0">Cumulative (Current)</th>
+    <th style="padding:6px 10px;text-align:right;border-bottom:2px solid #e2e8f0">Cumulative (Improved)</th>
+    <th style="padding:6px 10px;text-align:right;border-bottom:2px solid #e2e8f0">Difference</th>
+  </tr></thead><tbody>`;
+
+  data.forEach(d => {
+    const diff = d.cumImproved - d.cumBaseline;
+    const isBreakEven = d.cumImproved > 0 && d.month === data.find(x => x.cumImproved > 0)?.month;
+    const rowBg = isBreakEven ? 'background:#f0fdf4' : '';
+    html += `<tr style="${rowBg}">
+      <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9;font-weight:${isBreakEven ? '700' : '400'}">${isBreakEven ? '\u2605 ' : ''}Month ${d.month}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9;text-align:right">${fmt(d.baselineMonthly)}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:${d.improvedMonthly >= 0 ? '#12b886' : '#fa5252'}">${fmt(d.improvedMonthly)}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9;text-align:right">${fmt(d.cumBaseline)}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:${d.cumImproved >= 0 ? '#12b886' : '#fa5252'};font-weight:600">${fmt(d.cumImproved)}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f1f5f9;text-align:right;color:${diff >= 0 ? '#12b886' : '#fa5252'}">${diff >= 0 ? '+' : ''}${fmt(diff)}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  $('monthlyTable').innerHTML = html;
+}
+
+function updateMarketAnalysis(data, improvedRevenue, improvedProfit) {
+  const totalMonths = data.length;
+  const marketSize = +$('marketSize').value;
+  const purchaseFreq = +$('purchaseFreq').value;
+  const penetration = +$('marketPenetration').value / 100;
+  const cac = +$('cac').value;
+  const orders = +$('orders').value;
+  const orderGrow = +$('orderGrowth').value / 100;
+  const orderComp = +$('orderCompound').value / 100;
+
+  // Calculate average orders per month across the timeline
+  let totalOrders = 0;
+  for (let m = 1; m <= totalMonths; m++) {
+    const orderFactor = Math.pow(1 + orderComp, m - 1);
+    const monthOrders = Math.round(orders * (1 + orderGrow) * orderFactor);
+    totalOrders += monthOrders;
+  }
+  const avgOrdersPerMonth = Math.round(totalOrders / totalMonths);
+
+  // Max market capacity = addressable customers * penetration rate * purchase frequency
+  const reachableCustomers = Math.round(marketSize * penetration);
+  const maxOrdersPerYear = reachableCustomers * purchaseFreq;
+  const maxOrdersPerMonth = Math.round(maxOrdersPerYear / 12);
+
+  // Current annual run-rate of orders
+  const currentAnnualOrders = avgOrdersPerMonth * 12;
+
+  // Market saturation %
+  const saturation = maxOrdersPerYear > 0 ? (currentAnnualOrders / maxOrdersPerYear) * 100 : 0;
+
+  // Customer LTV (based on AOV * purchase frequency * avg customer lifespan ~3 years)
+  const aov = orders > 0 ? improvedRevenue / (orders * (1 + orderGrow)) : 0;
+  const ltv = aov * purchaseFreq * Math.min(totalMonths / 12, 3);
+  const ltvCac = cac > 0 ? ltv / cac : Infinity;
+
+  // Total orders over project lifetime
+  const totalLifetimeOrders = totalOrders;
+
+  // How many unique customers over lifetime
+  const uniqueCustomers = purchaseFreq > 0 ? Math.round(totalLifetimeOrders / (purchaseFreq * (totalMonths / 12))) : totalLifetimeOrders;
+
+  // Update KPIs
+  $('avgOrdersMonth').textContent = avgOrdersPerMonth.toLocaleString();
+  $('avgOrdersDesc').textContent = `${totalLifetimeOrders.toLocaleString()} total over ${formatTimeline(totalMonths)}`;
+
+  $('maxMarketOrders').textContent = maxOrdersPerYear.toLocaleString();
+  $('maxMarketDesc').textContent = `${reachableCustomers.toLocaleString()} customers x ${purchaseFreq}/yr`;
+
+  $('marketSaturation').textContent = saturation.toFixed(1) + '%';
+  $('marketSaturation').style.color = saturation > 80 ? '#fa5252' : saturation > 50 ? '#f59e0b' : '#10b981';
+  if (saturation > 80) {
+    $('saturationDesc').textContent = 'Near capacity - expand market';
+    $('saturationDesc').style.color = '#fa5252';
+  } else if (saturation > 50) {
+    $('saturationDesc').textContent = 'Growing well';
+    $('saturationDesc').style.color = '#f59e0b';
+  } else {
+    $('saturationDesc').textContent = 'Room to grow';
+    $('saturationDesc').style.color = '#10b981';
+  }
+
+  if (ltvCac === Infinity || cac === 0) {
+    $('ltvCacRatio').textContent = 'N/A';
+    $('ltvCacDesc').textContent = 'Set CAC to calculate';
+  } else {
+    $('ltvCacRatio').textContent = ltvCac.toFixed(1) + 'x';
+    $('ltvCacRatio').style.color = ltvCac >= 3 ? '#10b981' : ltvCac >= 1 ? '#f59e0b' : '#fa5252';
+    $('ltvCacDesc').textContent = ltvCac >= 3 ? 'Healthy (3x+ is ideal)' : ltvCac >= 1 ? 'Breakeven - improve LTV' : 'Losing money per customer';
+  }
+}
+
+function buildYearlyBreakdown(data) {
+  const years = {};
+  data.forEach(d => {
+    const yr = Math.ceil(d.month / 12);
+    if (!years[yr]) years[yr] = { improvedTotal: 0, baselineTotal: 0, months: 0, startProfit: null, endProfit: null };
+    years[yr].improvedTotal += d.improvedMonthly;
+    years[yr].baselineTotal += d.baselineMonthly;
+    years[yr].months++;
+    if (years[yr].startProfit === null) years[yr].startProfit = d.improvedMonthly;
+    years[yr].endProfit = d.improvedMonthly;
+  });
+
+  const yearKeys = Object.keys(years).sort((a,b) => a - b);
+  const cols = Math.min(yearKeys.length, 5);
+  const container = $('yearlyBreakdown');
+  container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  let html = '';
+  yearKeys.forEach((yr, i) => {
+    const y = years[yr];
+    const extra = y.improvedTotal - y.baselineTotal;
+    const growth = i > 0 && years[yearKeys[i-1]]
+      ? ((y.improvedTotal / years[yearKeys[i-1]].improvedTotal - 1) * 100).toFixed(0)
+      : null;
+    const avgMonthly = y.improvedTotal / y.months;
+    const isProfit = y.improvedTotal >= 0;
+
+    html += `<div style="background:${isProfit ? '#f0fdf4' : '#fef2f2'};border:1px solid ${isProfit ? '#bbf7d0' : '#fecaca'};border-radius:10px;padding:16px;text-align:center">
+      <div style="font-size:0.8rem;color:#64748b;font-weight:500">Year ${yr}</div>
+      <div style="font-size:1.6rem;font-weight:800;color:${isProfit ? '#12b886' : '#fa5252'};margin:6px 0">${fmt(y.improvedTotal)}</div>
+      <div style="font-size:0.75rem;color:#64748b">Avg ${fmt(avgMonthly)}/mo</div>
+      ${extra !== 0 ? `<div style="font-size:0.75rem;color:${extra > 0 ? '#12b886' : '#fa5252'};margin-top:4px">${extra > 0 ? '+' : ''}${fmt(extra)} vs no changes</div>` : ''}
+      ${growth !== null ? `<div style="font-size:0.7rem;color:#228be6;margin-top:2px">${growth > 0 ? '+' : ''}${growth}% vs Year ${yr - 1}</div>` : ''}
+      <div style="font-size:0.7rem;color:#94a3b8;margin-top:4px">Month ${(yr-1)*12+1}\u2013${Math.min(yr*12, data.length)}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function buildRecommendations(data, baseProfit, improvedProfit) {
+  const totalMonths = data.length;
+  const lastD = data[data.length - 1];
+  const investment = +$('initialInvestment').value;
+  const aovInc = +$('aovIncrease').value;
+  const costRed = +$('costReduction').value;
+  const refRed = +$('refundReduction').value;
+  const orderGrow = +$('orderGrowth').value;
+  const revenue = +$('revenue').value;
+
+  const recs = [];
+
+  // Break-even analysis
+  const beMonth = data.findIndex(d => d.cumImproved > 0) + 1;
+  if (investment > 0 && beMonth > 0) {
+    recs.push({ icon: '\u2705', text: `Your investment of ${fmt(investment)} pays back in <b>Month ${beMonth}</b>. After that, every month is pure profit.`, type: 'success' });
+  } else if (investment > 0 && beMonth === 0) {
+    recs.push({ icon: '\u26A0', text: `Your investment of ${fmt(investment)} does <b>not pay back</b> within ${formatTimeline(totalMonths)}. Consider reducing the investment or increasing improvement targets.`, type: 'warning' });
+  }
+
+  // Yearly growth
+  if (totalMonths >= 24) {
+    const yr1 = data.slice(0, 12).reduce((s, d) => s + d.improvedMonthly, 0);
+    const yr2 = data.slice(12, 24).reduce((s, d) => s + d.improvedMonthly, 0);
+    const growthPct = yr1 > 0 ? ((yr2 / yr1 - 1) * 100).toFixed(0) : 0;
+    if (growthPct > 0) {
+      recs.push({ icon: '\uD83D\uDCC8', text: `Year 2 profit is <b>${growthPct}% higher</b> than Year 1 thanks to compounding improvements. This is the power of consistent optimization.`, type: 'success' });
+    }
+  }
+
+  // AOV recommendation
+  if (aovInc === 0) {
+    recs.push({ icon: '\uD83D\uDCA1', text: `<b>Start with AOV.</b> Even a small increase per order (bundles, minimum order value, premium options) compounds into the biggest annual impact with zero extra cost to fulfill.`, type: 'tip' });
+  } else if (aovInc > 0) {
+    const aovAnnualImpact = aovInc * (+$('orders').value) * 12;
+    recs.push({ icon: '\u2705', text: `AOV increase of ${fmt(aovInc)} generates <b>${fmt(aovAnnualImpact)}/year</b> in extra revenue. Consider: product bundles, "frequently bought together", free shipping threshold above current AOV.`, type: 'success' });
+  }
+
+  // Cost recommendation
+  if (costRed === 0 && +$('costs').value > 20) {
+    recs.push({ icon: '\uD83D\uDCA1', text: `<b>Review your cost structure.</b> Use the Cost Breakdown chart to identify which categories (marketing, shipping, rent) have the most room to optimize.`, type: 'tip' });
+  }
+
+  // Refund recommendation
+  if (refRed === 0 && +$('refundRate').value > 5) {
+    recs.push({ icon: '\u26A0', text: `Your refund rate of ${$('refundRate').value}% is <b>above the healthy 3% threshold</b>. Improving product descriptions, photos, and shipping quality can significantly reduce returns.`, type: 'warning' });
+  }
+
+  // Margin warning
+  const margin = lastD.improvedMonthly > 0 ? 'healthy' : 'negative';
+  if (margin === 'negative') {
+    recs.push({ icon: '\u274C', text: `<b>Warning:</b> This scenario results in a loss. Focus on reducing costs or increasing revenue before investing further.`, type: 'danger' });
+  }
+
+  // Order growth
+  if (orderGrow === 0) {
+    recs.push({ icon: '\uD83D\uDCA1', text: `<b>Growing order volume</b> through SEO, paid ads, or referral programs has the most dramatic long-term impact when compounded. Even 1-2%/month growth compounds to 12-27% per year.`, type: 'tip' });
+  }
+
+  // Market capacity insights
+  const marketSize = +$('marketSize').value;
+  const penetration = +$('marketPenetration').value / 100;
+  const purchaseFreq = +$('purchaseFreq').value;
+  const cac = +$('cac').value;
+  const orders = +$('orders').value;
+  const currentOrdersYr = orders * (1 + orderGrow) * 12;
+  const maxOrdersYr = marketSize * penetration * purchaseFreq;
+  const saturation = maxOrdersYr > 0 ? (currentOrdersYr / maxOrdersYr * 100) : 0;
+  const aov = orders > 0 ? revenue / orders : 0;
+  const ltv = aov * purchaseFreq * 3;
+  const ltvCac = cac > 0 ? ltv / cac : 0;
+
+  if (saturation > 80) {
+    recs.push({ icon: '\u26A0', text: `<b>Market saturation at ${saturation.toFixed(0)}%.</b> You're approaching the ceiling of your addressable market. Consider: expanding to new regions, adding product lines, or increasing purchase frequency through subscriptions/loyalty programs.`, type: 'warning' });
+  } else if (saturation < 10) {
+    recs.push({ icon: '\uD83D\uDE80', text: `<b>Only ${saturation.toFixed(1)}% market penetration.</b> Massive room for growth. At current pace, you'll need ~${Math.ceil((maxOrdersYr * 0.5 - currentOrdersYr) / (orders * 12))} more years to reach 50% penetration. Aggressive marketing could accelerate this significantly.`, type: 'tip' });
+  }
+
+  if (cac > 0 && ltvCac < 3) {
+    recs.push({ icon: '\u26A0', text: `<b>LTV:CAC ratio is ${ltvCac.toFixed(1)}x</b> (healthy is 3x+). Each customer costs ${fmt(cac)} to acquire but generates ${fmt(ltv)} lifetime value. Improve by: increasing purchase frequency, raising AOV, or reducing acquisition cost.`, type: 'warning' });
+  } else if (cac > 0 && ltvCac >= 5) {
+    recs.push({ icon: '\u2705', text: `<b>Excellent LTV:CAC ratio of ${ltvCac.toFixed(1)}x.</b> You can afford to spend more on customer acquisition to accelerate growth. Consider increasing marketing budget by ${Math.round((ltvCac - 3) / ltvCac * 100)}% while maintaining a 3x ratio.`, type: 'success' });
+  }
+
+  // Total orders prediction
+  let totalPredOrders = 0;
+  for (let m = 1; m <= totalMonths; m++) {
+    totalPredOrders += Math.round(orders * (1 + orderGrow) * Math.pow(1 + (+$('orderCompound').value/100), m-1));
+  }
+  const uniqueCustomersPred = purchaseFreq > 0 ? Math.round(totalPredOrders / (purchaseFreq * totalMonths / 12)) : totalPredOrders;
+  recs.push({ icon: '\uD83D\uDCCA', text: `<b>Order prediction:</b> ~${totalPredOrders.toLocaleString()} total orders over ${formatTimeline(totalMonths)}, serving ~${uniqueCustomersPred.toLocaleString()} unique customers. Average ${Math.round(totalPredOrders/totalMonths).toLocaleString()} orders/month.`, type: 'tip' });
+
+  // Final cumulative
+  recs.push({ icon: '\uD83C\uDFAF', text: `Following this improvement plan over <b>${formatTimeline(totalMonths)}</b>, total profit reaches <b>${fmt(lastD.cumImproved)}</b> (vs ${fmt(lastD.cumBaseline)} without changes) \u2014 an extra <b>${fmt(lastD.cumImproved - lastD.cumBaseline)}</b>.`, type: 'summary' });
+
+  const colors = { success: '#f0fdf4', warning: '#fef3c7', danger: '#fef2f2', tip: '#eff6ff', summary: '#f5f3ff' };
+  const borders = { success: '#bbf7d0', warning: '#fde68a', danger: '#fecaca', tip: '#bfdbfe', summary: '#c4b5fd' };
+
+  let html = '';
+  recs.forEach(r => {
+    html += `<div style="padding:10px 14px;margin-bottom:8px;background:${colors[r.type]};border:1px solid ${borders[r.type]};border-radius:8px;font-size:0.85rem;line-height:1.5">
+      ${r.icon} ${r.text}
+    </div>`;
+  });
+  $('recommendations').innerHTML = html;
+}
+
+function setChange(id, diff, positiveIsGood) {
+  const el = $(id);
+  if (Math.abs(diff) < 0.5) { el.textContent = ''; return; }
+  el.textContent = (diff > 0 ? '+' : '') + fmt(diff) + '/mo';
+  const good = positiveIsGood ? diff >= 0 : diff <= 0;
+  el.className = 'stat-change ' + (good ? 'positive' : 'negative');
+}
+
+function updateInsights(aovInc, costRed, refRed, orderGrow, margin, newMargin, baseCosts, refunds, newOrders, profit, newProfit) {
+  // Insight 1
+  if (aovInc > 0) {
+    $('insight1').textContent = `Increasing AOV by ${fmt(aovInc)} on ${newOrders.toLocaleString()} orders adds ${fmt(aovInc * newOrders * 12)}/year. This is the highest-ROI lever \u2014 costs nothing extra to fulfill.`;
+    $('insightBox1').className = 'insight-box';
+  } else if (aovInc < 0) {
+    $('insight1').textContent = `AOV declining by ${fmt(Math.abs(aovInc))} per order loses ${fmt(Math.abs(aovInc) * newOrders * 12)}/year. Consider: bundling, minimum order incentives, or premium upsells.`;
+    $('insightBox1').className = 'insight-box danger';
+  } else {
+    $('insight1').textContent = 'Try adjusting AOV \u2014 even a small increase per order compounds into significant annual revenue with zero extra cost.';
+    $('insightBox1').className = 'insight-box';
+  }
+
+  // Insight 2
+  if (newProfit < 0) {
+    $('insight2').textContent = `Warning: This scenario results in a monthly loss of ${fmt(Math.abs(newProfit))}. Review costs and pricing immediately.`;
+    $('insightBox2').className = 'insight-box danger';
+  } else if (costRed > 0) {
+    const saved = baseCosts * (costRed / 100) * 12;
+    $('insight2').textContent = `Cutting costs by ${costRed}% saves ${fmt(saved)}/year. Use the Cost Breakdown chart to find which categories have the most room.`;
+    $('insightBox2').className = 'insight-box';
+  } else if (costRed < 0) {
+    const extra = baseCosts * (Math.abs(costRed) / 100) * 12;
+    $('insight2').textContent = `Costs increasing by ${Math.abs(costRed)}% adds ${fmt(extra)}/year in expenses. Ensure this investment drives proportional revenue growth.`;
+    $('insightBox2').className = 'insight-box warning';
+  } else if (newMargin < 20) {
+    $('insight2').textContent = `Margin at ${pct(newMargin)} \u2014 below the healthy 30% threshold. Use the Profit Margin Trend chart to monitor and improve.`;
+    $('insightBox2').className = 'insight-box warning';
+  } else {
+    $('insight2').textContent = 'Adjust the improvement sliders to see how small changes compound into significant annual impact.';
+    $('insightBox2').className = 'insight-box';
+  }
+}
+
+// Initialize
+update();
+</script>
+</body>
+</html>

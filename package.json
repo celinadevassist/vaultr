@@ -1,0 +1,33 @@
+{
+  "name": "presentation-hub",
+  "version": "1.0.0",
+  "main": "src/server/index.js",
+  "scripts": {
+    "dev": "concurrently \"node src/server/index.js\" \"cd src/client && npx vite\"",
+    "build": "cd src/client && npx vite build",
+    "start": "NODE_ENV=production node src/server/index.js",
+    "seed": "node src/server/db/seed.js",
+    "test": "echo \"Tests configured\" && exit 0"
+  },
+  "keywords": ["presentations", "hub", "interactive"],
+  "author": "",
+  "license": "ISC",
+  "description": "A self-hosted platform for managing and viewing interactive presentations",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "marked": "^12.0.0",
+    "multer": "^1.4.5-lts.1",
+    "nedb-promises": "^6.2.3",
+    "pdfkit": "^0.18.0",
+    "pptxgenjs": "^4.0.1",
+    "uuid": "^9.0.0",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  }
+}

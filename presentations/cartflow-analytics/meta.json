@@ -1,0 +1,9 @@
+{
+  "title": "CartFlow Analytics",
+  "description": "Interactive profit simulator for e-commerce businesses with country-specific data, scenario analysis, and market capacity projections",
+  "category": "business",
+  "type": "dynamic",
+  "pageCount": 1,
+  "entryFile": "index.html",
+  "tags": ["analytics", "profit", "e-commerce", "simulator"]
+}
