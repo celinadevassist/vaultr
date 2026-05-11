@@ -6,3 +6,6 @@ dist/
 src/client/dist/
 *.log
 .DS_Store
+
+# claude-flow daemon runtime state — local-only, mutates per-session
+.claude-flow/
