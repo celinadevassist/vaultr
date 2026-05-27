@@ -1,0 +1,49 @@
+{
+  "$generatedBy": "project-readiness-report",
+  "$generatedAt": "2026-05-27T20:40:00.000Z",
+  "$version": 1,
+
+  "$sources": {
+    "projectMetaPath":     "/home/sammy/vaultr/.project-meta.json",
+    "projectMetaFound":    false,
+    "projectSkillsPath":   "/home/sammy/vaultr/.project-skills.json",
+    "projectSkillsFound":  false,
+    "projectTechPrdPath":  "/home/sammy/vaultr/.project-technical-prd.json",
+    "projectTechPrdFound": false,
+    "priorReadinessPath":  "/home/sammy/vaultr/.project-readiness.json",
+    "priorReadinessFound": false
+  },
+
+  "score":    null,
+  "tier":     "incomplete",
+  "headline": "No audits have run on this project yet — readiness cannot be scored until metadata-refiner, skill-advisor, and technical-analyzer produce their side-cars.",
+
+  "breakdown": {
+    "metadataHealth":    { "score": 0, "max": 20, "note": "WAITING: .project-meta.json missing" },
+    "skillAdoption":     { "score": 0, "max": 40, "note": "WAITING: .project-skills.json missing" },
+    "skillVerification": { "score": 0, "max": 15, "note": "WAITING: depends on .project-skills.json" },
+    "skillDrift":        { "score": 0, "max": 10, "note": "WAITING: depends on .project-skills.json" },
+    "infraCompleteness": { "score": 0, "max": 15, "note": "WAITING: .project-technical-prd.json missing" }
+  },
+
+  "punchList": [
+    {
+      "rank": 1,
+      "category": "audit-input",
+      "action": "WAITING: Run project-metadata-refiner — produces .project-meta.json + scaffolds README/LICENSE/og:/twitter: as needed",
+      "pointsIfDone": 20
+    },
+    {
+      "rank": 2,
+      "category": "audit-input",
+      "action": "WAITING: Run project-skill-advisor (depends on metadata refiner output) — produces .project-skills.json with v2 schema",
+      "pointsIfDone": 65
+    },
+    {
+      "rank": 3,
+      "category": "audit-input",
+      "action": "WAITING: Run project-technical-analyzer — produces .project-technical-prd.json + infraChecklist",
+      "pointsIfDone": 15
+    }
+  ]
+}
